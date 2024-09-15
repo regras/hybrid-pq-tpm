@@ -1,0 +1,30 @@
+#ifndef HYBRIDCOMMON_H
+#define HYBRIDCOMMON_H
+
+extern const int MIN_MSG_LEN;
+extern const int MAX_MSG_LEN;
+extern const int LEN_BYTES;
+
+extern const int SEED_LENGTH_ED25519;
+extern const int CRYPTO_ED25519_PUBLICKEY_BYTES;
+extern const int CRYPTO_ED25519_SECRETKEY_BYTES;
+extern const int CRYPTO_ED25519_SIGNATURE_BYTES;
+extern const int CRYPTO_ED25519_SECRETKEY_WITHOUT_PUBLIC_KEY_BYTES;
+
+extern const int SEED_LENGTH_DILITHIUM;
+extern const int CRYPTO_DILITHIUM_PUBLICKEY_BYTES;
+extern const int CRYPTO_DILITHIUM_SECRETKEY_BYTES;
+extern const int CRYPTO_DILITHIUM_SIGNATURE_BYTES;
+
+extern const int SEED_LENGTH_SPHINCS;
+extern const int CRYPTO_SPHINCS_PUBLICKEY_BYTES;
+extern const int CRYPTO_SPHINCS_SECRETKEY_BYTES;
+extern const int CRYPTO_SPHINCS_SIGNATURE_BYTES;
+
+extern const int NONCE_BYTES;
+extern const int HASH_LENGTH;
+
+extern const int DILITHIUM_ED25519_SPHINCS_COMPACT_ID;
+extern const int DILITHIUM_ED25519_SPHINCS_FULL_ID;
+
+#endif
