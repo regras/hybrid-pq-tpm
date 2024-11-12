@@ -1026,10 +1026,10 @@ typedef struct {
 /*****************************************************************************/
 /*                             Dilithium Mods                                */
 /*****************************************************************************/
-#define MAX_DILITHIUM_PUBLIC_KEY_SIZE 1760
-#define MAX_DILITHIUM_SECRET_KEY_SIZE 3856
+#define MAX_DILITHIUM_PUBLIC_KEY_SIZE 2659
+#define MAX_DILITHIUM_SECRET_KEY_SIZE 4962
 #define MAX_DILITHIUM_DIGEST_SIZE 64 // I think this is a safe digest value even after a SHA3 implementation is added
-#define MAX_DILITHIUM_CRYPTO_BYTES 3366
+#define MAX_DILITHIUM_CRYPTO_BYTES 4766
 #define MAX_DILITHIUM_SIGNED_MESSAGE_SIZE MAX_DILITHIUM_DIGEST_SIZE+MAX_DILITHIUM_CRYPTO_BYTES
 #define MAX_DILITHIUM_MESSAGE_SIZE MAX_DILITHIUM_DIGEST_SIZE+MAX_DILITHIUM_CRYPTO_BYTES
 typedef union {

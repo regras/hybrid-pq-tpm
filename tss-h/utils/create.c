@@ -180,6 +180,14 @@ int main(int argc, char *argv[]) {
                     dilithium_mode = TPM_DILITHIUM_MODE_3;
                 } else if (strcmp(argv[i],"mode=4") == 0) {
                     dilithium_mode = TPM_DILITHIUM_MODE_4;
+                } else if (strcmp(argv[i],"mode=5") == 0) {
+                    dilithium_mode = TPM_DILITHIUM_MODE_5;
+                } else if (strcmp(argv[i],"mode=6") == 0) {
+                    dilithium_mode = TPM_DILITHIUM_MODE_6;
+                } else if (strcmp(argv[i],"mode=7") == 0) {
+                    dilithium_mode = TPM_DILITHIUM_MODE_7;
+                } else if (strcmp(argv[i],"mode=8") == 0) {
+                    dilithium_mode = TPM_DILITHIUM_MODE_8;
                 } else {
                     printf("Bad parameter %s for -dilithium\n", argv[i]);
                     printUsage();

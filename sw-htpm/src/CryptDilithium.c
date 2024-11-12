@@ -1,332 +1,495 @@
-/*
- * MIT License
- *
- Copyright (c) 2024 Felipe José Aguiar Rampazzo (FEEC-Unicamp)
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-#include "Tpm.h"
-#include "./dilithium/params.h"
-#include "./dilithium/sign.h"
 
+
+#include "Tpm.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stddef.h>
 #include <string.h>
+#include <oqs/sig.h>
+#include <oqs/sig_ml_dsa.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
 
-#include "./hybrid/hybrid.h"
-#include "./hybrid/hybrid-common.h"
-#include "./hybrid/tweetnacl.h"
-#include "./dilithium/randombytes.h"
-
+#include "./ecc/ecc_keygen.h"
+#include "./ecc/ecc_sign.h"
+#include "./ecc/ecc_verify.h"
+#include "./ecc/ecc_utils.h"
 #include "./commom/cpucycles.h"
-// #include <time.h>
 
+// Estrutura para armazenar os parâmetros
+typedef struct {
+    int ecc_pk_size;
+    int ecc_sk_size;
+    int ecc_sig_size;
+    int ecc_nid;
+    const char *curve_name;
+    int mldsa_level;
+    int mldsa_pk_size;
+    int mldsa_sk_size;
+    int mldsa_sig_size;
+} Params;
 
-BOOL CryptDilithiumInit(void) {
-    return TRUE;
+// Nomes das curvas
+const char *curve_names[] = {"secp256k1", "secp384r1", "secp521r1", "ed25519", "ed448"};
+
+void generate_params(uint8_t tpm_dilithium_mode, Params *params) {
+    // Inicializa com valores padrão para modo DILITHIUM
+    params->ecc_pk_size = 0;
+    params->ecc_sk_size = 0;
+    params->ecc_sig_size = 0;
+    params->ecc_nid = 0;
+    params->curve_name = NULL;
+
+    switch (tpm_dilithium_mode) {
+        case TPM_DILITHIUM_MODE_1: // mldsa44
+        	params->mldsa_level = 1;
+            params->mldsa_pk_size = OQS_SIG_ml_dsa_44_ipd_length_public_key;
+            params->mldsa_sk_size = OQS_SIG_ml_dsa_44_ipd_length_secret_key;
+            params->mldsa_sig_size = OQS_SIG_ml_dsa_44_ipd_length_signature;
+            break;
+        case TPM_DILITHIUM_MODE_2: // mldsa65
+			params->mldsa_level = 2;
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_65_ipd_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_65_ipd_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_65_ipd_length_signature;
+			break;
+        case TPM_DILITHIUM_MODE_3: // mldsa87
+			params->mldsa_level = 3;
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_87_ipd_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_87_ipd_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_87_ipd_length_signature;
+			break;
+        case TPM_DILITHIUM_MODE_4: // mldsa44 + p256
+            params->ecc_pk_size = 33;
+            params->ecc_sk_size = 32;
+            params->ecc_sig_size = 72;
+            params->ecc_nid = NID_secp256k1;
+            params->curve_name = curve_names[0];
+            params->mldsa_level = 1;
+            params->mldsa_pk_size = OQS_SIG_ml_dsa_44_ipd_length_public_key;
+            params->mldsa_sk_size = OQS_SIG_ml_dsa_44_ipd_length_secret_key;
+            params->mldsa_sig_size = OQS_SIG_ml_dsa_44_ipd_length_signature;
+            break;
+        case TPM_DILITHIUM_MODE_5: // mldsa44 + ed25519
+			params->ecc_pk_size = 32;
+			params->ecc_sk_size = 32;
+			params->ecc_sig_size = 64;
+			params->ecc_nid = NID_ED25519;
+			params->mldsa_level = 1;
+			params->curve_name = curve_names[3]; // ed25519
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_44_ipd_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_44_ipd_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_44_ipd_length_signature;
+			break;
+		case TPM_DILITHIUM_MODE_6: // mldsa65 + p384
+			params->ecc_pk_size = 49;
+			params->ecc_sk_size = 48;
+			params->ecc_sig_size = 104;
+			params->ecc_nid = NID_secp384r1;
+			params->curve_name = curve_names[1]; // secp384r1
+			params->mldsa_level = 2;
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_65_ipd_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_65_ipd_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_65_ipd_length_signature;
+			break;
+		case TPM_DILITHIUM_MODE_7: // mldsa87 + p521
+			params->ecc_pk_size = 67;
+			params->ecc_sk_size = 66;
+			params->ecc_sig_size = 139;
+			params->ecc_nid = NID_secp521r1;
+			params->curve_name = curve_names[2]; // secp521r1
+			params->mldsa_level = 3;
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_87_ipd_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_87_ipd_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_87_ipd_length_signature;
+			break;
+		case TPM_DILITHIUM_MODE_8: // mldsa87 + ed448
+			params->ecc_pk_size = 57;
+			params->ecc_sk_size = 57;
+			params->ecc_sig_size = 114;
+			params->ecc_nid = NID_ED448;
+			params->curve_name = curve_names[4]; // ed448
+			params->mldsa_level = 3;
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_87_ipd_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_87_ipd_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_87_ipd_length_signature;
+			break;
+        default:
+            fprintf(stderr, "Modo de TPM_DILITHIUM inválido.\n");
+            exit(EXIT_FAILURE);
+    }
 }
 
-BOOL CryptDilithiumStartup(void) {
-    return TRUE;
-}
+BOOL CryptDilithiumInit(void) { return TRUE; }
+BOOL CryptDilithiumStartup(void) { return TRUE; }
 
-LIB_EXPORT TPM_RC
-CryptDilithiumSign(
-	     TPMT_SIGNATURE      *sigOut,
-	     OBJECT              *key,           // IN: key to use
-	     TPM2B_DIGEST        *hIn            // IN: the digest to sign
-	     )
-{
-    TPM_RC   retVal = TPM_RC_SUCCESS;
+LIB_EXPORT TPM_RC CryptDilithiumSign(
+    TPMT_SIGNATURE *sigOut,
+    OBJECT *key,                // IN: Key to use
+    TPM2B_DIGEST *hIn           // IN: The digest to sign
+) {
+    TPM_RC retVal = TPM_RC_SUCCESS;
 
+    // Initialize parameters
+    Params params;
+    generate_params(key->publicArea.parameters.dilithiumDetail.mode, &params);
+
+    // Signature variables
     unsigned long long sigLen1;
-	unsigned long sigLen2;
-	unsigned char* sig1 = (unsigned char*)malloc((CRYPTO_ED25519_SIGNATURE_BYTES + (int) hIn->t.size) * sizeof(unsigned char));
-	unsigned char* sk1 = (unsigned char*)malloc(CRYPTO_ED25519_SECRETKEY_BYTES * sizeof(unsigned char));
+    unsigned long sigLen2;
+    unsigned char *sig1 = (unsigned char *)malloc((params.ecc_sig_size + (int)hIn->t.size) * sizeof(unsigned char));
+    unsigned char *sk1 = (unsigned char *)malloc(params.ecc_sk_size * sizeof(unsigned char));
+    EVP_PKEY *ev_privKey = NULL;
 
-	uint64_t start_cycles, end_cycles, total_cycles;
-	// clock_t start, end;
-	// double cpu_time_used;
+    // Cycle counting for performance
+    uint64_t start_cycles, end_cycles, total_cycles;
 
+    // Parameter checks
+    pAssert(sigOut != NULL && key != NULL && hIn != NULL);
 
-	pAssert(sigOut != NULL && key != NULL && hIn != NULL);
+    // Set mode used in signature
+    sigOut->signature.dilithium.mode = key->publicArea.parameters.dilithiumDetail.mode;
 
-	// Set mode used in signature
-	sigOut->signature.dilithium.mode = key->publicArea.parameters.dilithiumDetail.mode;
+    // Validate signature algorithm
+    if (sigOut->sigAlg != ALG_DILITHIUM_VALUE) {
+        if (sigOut->sigAlg == ALG_NULL_VALUE) {
+            sigOut->signature.dilithium.sig.t.size = 0;
+            return TPM_RC_SUCCESS;
+        }
+        return TPM_RC_SUCCESS;
+    }
 
-	TEST(sigOut->sigAlg);
-	switch(sigOut->sigAlg)
-	{
-	  case ALG_NULL_VALUE:
-		sigOut->signature.dilithium.sig.t.size = 0;
-		return TPM_RC_SUCCESS;
-	  case ALG_DILITHIUM_VALUE:
-		break;
-	  default:
-		retVal = TPM_RC_SUCCESS;
-		return retVal;
-	}
+    // Check valid Dilithium mode
+    if (sigOut->signature.dilithium.mode < TPM_DILITHIUM_MODE_1 ||
+        sigOut->signature.dilithium.mode > TPM_DILITHIUM_MODE_8) {
+        return TPM_RC_VALUE;
+    }
 
-	if (sigOut->signature.dilithium.mode >= TPM_DILITHIUM_MODE_1 &&
-			sigOut->signature.dilithium.mode <= TPM_DILITHIUM_MODE_4) {
-		retVal = 0;
-	} else {
-		return TPM_RC_VALUE;
-	}
+    // Start CPU cycle measurement
+    start_cycles = cpucycles();
 
-	//Copy sk1 from input
-	for (int i = 0;i < CRYPTO_ED25519_SECRETKEY_BYTES;i++) {
-		sk1[i] = key->sensitive.sensitive.dilithium.t.buffer[i];
-	}
+    if (params.ecc_nid != 0) {
 
-	start_cycles = cpucycles();
-	// start = clock();
+		// Copy sensitive data to sk1
+		for (int i = 0; i < params.ecc_sk_size; i++) {
+			sk1[i] = key->sensitive.sensitive.dilithium.t.buffer[i];
+		}
 
-	int r1 = crypto_sign_ed25519(
-		sig1,
-		&sigLen1,
-		hIn->t.buffer,
-		(unsigned long long) hIn->t.size,
-		sk1);
+		// Deserialize private key based on curve type
+		if (params.ecc_nid != NID_ED25519 && params.ecc_nid != NID_ED448) {
+			ev_privKey = get_deserialize_private_key(sk1, params.ecc_sk_size, params.curve_name);
+		} else {
+			ev_privKey = EVP_PKEY_new_raw_private_key(params.ecc_nid, NULL, sk1, params.ecc_sk_size);
+		}
 
-	for (int i = 0;i < (int)sigLen1;i++) {
-		sigOut->signature.dilithium.sig.t.buffer[i] = sig1[i];
-	}
-	free(sig1);
-	free(sk1);
+		if (!ev_privKey) {
+			fprintf(stderr, "Error deserializing the private key %s.\n", params.curve_name);
+			free(sig1);
+			free(sk1);
+			return -1;
+		}
 
-	int r2 = mldsa_crypto_sign_signature(
-		sigOut->signature.dilithium.sig.t.buffer+(sigLen1),
-		&sigLen2,
-		hIn->t.buffer,
-		(size_t) hIn->t.size,
-		key->sensitive.sensitive.dilithium.t.buffer+CRYPTO_ED25519_SECRETKEY_BYTES);
+		// Sign the message
+		if (!sign_message(ev_privKey, hIn->t.buffer, (int)hIn->t.size, &sig1, params.ecc_sig_size)) {
+			fprintf(stderr, "Error signing message with %s.\n", params.curve_name);
+			EVP_PKEY_free(ev_privKey);
+			free(sig1);
+			free(sk1);
+			return -1;
+		}
+		printf("Message signed successfully!\n");
 
+		// Copy signature to output buffer
+		memcpy(sigOut->signature.dilithium.sig.t.buffer, sig1, params.ecc_sig_size);
+		free(sig1);
+		free(sk1);
+		}
+
+    // Generate the second part of the signature with ML-DSA
+
+    int r2 = 0;
+    switch (params.mldsa_level) {
+          case 1:
+              r2 = OQS_SIG_ml_dsa_44_ipd_sign(
+            	        sigOut->signature.dilithium.sig.t.buffer + params.ecc_sig_size,
+            	        &sigLen2,
+            	        hIn->t.buffer,
+            	        (size_t)hIn->t.size,
+            	        key->sensitive.sensitive.dilithium.t.buffer + params.ecc_sk_size
+            	    );
+              break;
+          case 2:
+              r2 = OQS_SIG_ml_dsa_65_ipd_sign(
+            	        sigOut->signature.dilithium.sig.t.buffer + params.ecc_sig_size,
+            	        &sigLen2,
+            	        hIn->t.buffer,
+            	        (size_t)hIn->t.size,
+            	        key->sensitive.sensitive.dilithium.t.buffer + params.ecc_sk_size
+            	    );
+              break;
+          case 3:
+              r2 = OQS_SIG_ml_dsa_87_ipd_sign(
+            	        sigOut->signature.dilithium.sig.t.buffer + params.ecc_sig_size,
+            	        &sigLen2,
+            	        hIn->t.buffer,
+            	        (size_t)hIn->t.size,
+            	        key->sensitive.sensitive.dilithium.t.buffer + params.ecc_sk_size
+            	    );
+              break;
+          default:
+              fprintf(stderr, "Modo inválido: %d\n", params.mldsa_level);
+              return TPM_RC_FAILURE;
+      }
+
+    // End CPU cycle measurement
     end_cycles = cpucycles();
     total_cycles = end_cycles - start_cycles - cpucycles_overhead();
     printf("Total CPU cycles for Sign: %llu\n", (unsigned long long)total_cycles);
-    // end = clock();
-    // cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    // printf("Total CPU cycles for Sign: %f\n", cpu_time_used);
 
-
-	if (r1 != 0) {
-		return -2;
-	}
-
-	if (r2 != 0) {
-		return -3;
-	}
-
-	if (sigLen1 != CRYPTO_ED25519_SIGNATURE_BYTES + (unsigned long long) hIn->t.size) {
-		return -5;
-	}
-
-
-    sigOut->signature.dilithium.sig.t.size =
-    		CRYPTO_ED25519_SIGNATURE_BYTES + hIn->t.size +
-    		CRYPTO_DILITHIUM_SIGNATURE_BYTES ;
+    if (r2 != 0) {
+        return -3;
+    }
+    // Set total signature size in the output structure
+    sigOut->signature.dilithium.sig.t.size = params.ecc_sig_size + params.mldsa_sig_size;
 
 Exit:
     return retVal;
 }
+
 
 LIB_EXPORT TPM_RC
 CryptDilithiumValidateSignature(
-			  TPMT_SIGNATURE  *sig,           // IN: signature
-			  OBJECT          *key,           // IN: public dilithium key
-			  TPM2B_DIGEST    *digest         // IN: The digest being validated
-			  )
+    TPMT_SIGNATURE  *sig,           // IN: signature
+    OBJECT          *key,           // IN: public Dilithium key
+    TPM2B_DIGEST    *digest         // IN: The digest being validated
+)
 {
-    TPM_RC   retVal = TPM_RC_SUCCESS;
+    TPM_RC retVal = TPM_RC_SUCCESS;
+    EVP_PKEY* ev_pubKey = NULL;
+    Params params;
+    generate_params(key->publicArea.parameters.dilithiumDetail.mode, &params);
 
     uint64_t start_cycles, end_cycles, total_cycles;
-    // clock_t start, end;
-	// double cpu_time_used;
+    unsigned char* msgFromSignature1 = (unsigned char*)malloc(96 * sizeof(unsigned char));
+    unsigned long long msgFromSignatureLen1 = 0;
+    unsigned char* pk1 = (unsigned char*)malloc(params.ecc_pk_size * sizeof(unsigned char));
+    unsigned char* pk2 = (unsigned char*)malloc(params.mldsa_pk_size * sizeof(unsigned char));
+    int sig1Len = 96;
 
-	unsigned char* msgFromSignature1 = (unsigned char*)malloc(96 * sizeof(unsigned char)); //MAX_MSG_LEN + CRYPTO_ED25519_SIGNATURE_BYTES
-	unsigned long long msgFromSignatureLen1 = 0;
-	unsigned char* pk1 = (unsigned char*)malloc(CRYPTO_ED25519_PUBLICKEY_BYTES * sizeof(unsigned char)); //CRYPTO_ED25519_PUBLICKEY_BYTES
-	unsigned char* pk2 = (unsigned char*)malloc(CRYPTO_DILITHIUM_PUBLICKEY_BYTES* sizeof(unsigned char)); //CRYPTO_DILITHIUM_PUBLICKEY_BYTES
-
-
-	if (sig->signature.dilithium.sig.t.size != CRYPTO_ED25519_SIGNATURE_BYTES +
-			digest->t.size +
-			CRYPTO_DILITHIUM_SIGNATURE_BYTES)
-	{
-		return -4;
-	}
-
-	int sig1Len = 96;
+    if (sig->signature.dilithium.sig.t.size != params.ecc_sig_size + params.mldsa_sig_size) {
+        free(msgFromSignature1);
+        free(pk1);
+        free(pk2);
+        return TPM_RC_VALUE;
+    }
 
     pAssert(sig != NULL && key != NULL && digest != NULL);
 
-	// Can't verify signatures with a key of different mode
-	if (sig->signature.dilithium.mode != key->publicArea.parameters.dilithiumDetail.mode)
-		ERROR_RETURN(TPM_RC_SIGNATURE);
+    if (sig->signature.dilithium.mode != key->publicArea.parameters.dilithiumDetail.mode) {
+        return TPM_RC_SIGNATURE;
+    }
 
-	switch(sig->sigAlg) {
-	  case ALG_DILITHIUM_VALUE:
-		break;
-	  default:
-		return TPM_RC_SCHEME;
-	}
+    if (sig->sigAlg != ALG_DILITHIUM_VALUE) {
+        return TPM_RC_SCHEME;
+    }
 
-	TEST(sig->sigAlg);
-	if (sig->signature.dilithium.mode >= TPM_DILITHIUM_MODE_1 &&
-			sig->signature.dilithium.mode <= TPM_DILITHIUM_MODE_4) {
-		retVal=TPM_RC_SUCCESS;
-	} else {
-		return TPM_RC_SUCCESS + 2;
-	}
-
-	//Copy pk1 from source
-	for (int i = 0;i < CRYPTO_ED25519_PUBLICKEY_BYTES;i++) {
-		pk1[i] = key->publicArea.unique.dilithium.b.buffer[i];
-	}
+    if (sig->signature.dilithium.mode < TPM_DILITHIUM_MODE_1 || sig->signature.dilithium.mode > TPM_DILITHIUM_MODE_4) {
+        return TPM_RC_VALUE;
+    }
 
 	start_cycles = cpucycles();
-	// start = clock();
 
-	int r1 = crypto_sign_ed25519_open(
-			msgFromSignature1,
-			&msgFromSignatureLen1,
-			sig->signature.dilithium.sig.t.buffer,
-			sig1Len,
-			pk1);
+    if (params.ecc_nid != 0) {
 
-	if (r1 != 0) {
-		goto badsig;
-	}
+		// Copy pk1 from key
+		memcpy(pk1, key->publicArea.unique.dilithium.b.buffer, params.ecc_pk_size);
 
-	free(pk1);
+		if (params.ecc_nid != NID_ED25519 && params.ecc_nid != NID_ED448) {
+			ev_pubKey = get_deserialize_public_key(pk1, params.ecc_pk_size, params.curve_name);
+		} else {
+			ev_pubKey = EVP_PKEY_new_raw_public_key(params.ecc_nid, NULL, pk1, params.ecc_pk_size);
+		}
 
-	if ((int) msgFromSignatureLen1 != 32) {
-		return -6;
-	}
+		if (!ev_pubKey) {
+			fprintf(stderr, "Erro ao desserializar a chave pública %s.\n", params.curve_name);
+			free(msgFromSignature1);
+			free(pk1);
+			free(pk2);
+			return TPM_RC_VALUE;
+		}
 
-	free(msgFromSignature1);
+		if (!verify_signature(ev_pubKey, msgFromSignature1, &msgFromSignatureLen1, sig->signature.dilithium.sig.t.buffer, sig1Len)) {
+			EVP_PKEY_free(ev_pubKey);
+			free(msgFromSignature1);
+			free(pk1);
+			free(pk2);
+			return TPM_RC_SIGNATURE;
+		}
 
-	//Copy pk2 from source
-	for (int i = 0;i < CRYPTO_DILITHIUM_PUBLICKEY_BYTES;i++) {
-		pk2[i] = key->publicArea.unique.dilithium.b.buffer[i + CRYPTO_ED25519_PUBLICKEY_BYTES];
-	}
+		EVP_PKEY_free(ev_pubKey);
+		free(msgFromSignature1);
 
-	int r2 = mldsa_crypto_sign_verify(
-		sig->signature.dilithium.sig.t.buffer+sig1Len,
-		CRYPTO_DILITHIUM_SIGNATURE_BYTES,
-		digest->t.buffer,
-		(size_t) digest->t.size,
-		pk2);
+		if (msgFromSignatureLen1 != 32) {
+			free(pk1);
+			free(pk2);
+			return TPM_RC_VALUE;
+		}
+    }
 
-	end_cycles = cpucycles();
-	total_cycles = end_cycles - start_cycles - cpucycles_overhead();
-	printf("Total CPU cycles for Verify: %llu\n", (unsigned long long)total_cycles);
-    // end = clock();
-    // cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    // printf("Total CPU cycles for Verify: %f\n", cpu_time_used);
+    // Copy pk2 from key for second verification
+    memcpy(pk2, key->publicArea.unique.dilithium.b.buffer + params.ecc_pk_size, params.mldsa_pk_size);
 
-	free(pk2);
+    int r2 = 0;
+    switch (params.mldsa_level) {
+          case 1:
+              r2 = OQS_SIG_ml_dsa_44_ipd_verify(
+            	        digest->t.buffer,
+            	        (size_t)digest->t.size,
+            	        sig->signature.dilithium.sig.t.buffer,
+            	        params.mldsa_sig_size,
+            	        pk2
+            	    );
+              break;
+          case 2:
+              r2 = OQS_SIG_ml_dsa_65_ipd_verify(
+            	        digest->t.buffer,
+            	        (size_t)digest->t.size,
+            	        sig->signature.dilithium.sig.t.buffer,
+            	        params.mldsa_sig_size,
+            	        pk2
+            	    );
+              break;
+          case 3:
+              r2 = OQS_SIG_ml_dsa_87_ipd_verify(
+            	        digest->t.buffer,
+            	        (size_t)digest->t.size,
+            	        sig->signature.dilithium.sig.t.buffer,
+            	        params.mldsa_sig_size,
+            	        pk2
+            	    );
+              break;
+          default:
+              fprintf(stderr, "Modo inválido: %d\n", params.mldsa_level);
+              return TPM_RC_FAILURE;
+      }
 
-	if (r2 != 0) {
-		goto badsig;
-	}
+    end_cycles = cpucycles();
+    total_cycles = end_cycles - start_cycles - cpucycles_overhead();
+    printf("Total CPU cycles for Verify: %llu\n", (unsigned long long)total_cycles);
 
-Exit:
+    free(pk1);
+    free(pk2);
+
+    if (r2 != 0) {
+        return TPM_RC_SIGNATURE;
+    }
+
     return TPM_RC_SUCCESS;
-
-    /* Signature verification failed */
-    badsig:
-    return TPM_RC_SIGNATURE;
 }
+
 
 LIB_EXPORT TPM_RC
 CryptDilithiumGenerateKey(
-            // IN/OUT: The object structure in which the key is created.
-		    OBJECT              *dilithiumKey,
-            // IN: if not NULL, the deterministic RNG state
-		    RAND_STATE          *rand
-		    )
+            OBJECT *dilithiumKey,   // IN/OUT: Estrutura do objeto onde a chave será criada
+            RAND_STATE *rand        // IN: Estado RNG determinístico (se não NULL)
+)
 {
-    TPMT_PUBLIC         *publicArea = &dilithiumKey->publicArea;
-    TPMT_SENSITIVE      *sensitive = &dilithiumKey->sensitive;
-    TPM_RC               retVal = TPM_RC_NO_RESULT;
+    TPMT_PUBLIC *publicArea = &dilithiumKey->publicArea;
+    TPMT_SENSITIVE *sensitive = &dilithiumKey->sensitive;
+    TPM_RC retVal = TPM_RC_NO_RESULT;
 
-    //Measure CPU -- comment if not needed
+    EVP_PKEY *ev_key = NULL;
+    Params params;
+    generate_params(dilithiumKey->publicArea.parameters.dilithiumDetail.mode, &params);
+
     uint64_t start_cycles, end_cycles, total_cycles;
-	// clock_t start, end;
-	// double cpu_time_used;
 
-    unsigned char* pk1 = (unsigned char*)malloc(CRYPTO_ED25519_PUBLICKEY_BYTES * sizeof(unsigned char)); //CRYPTO_ED25519_PUBLICKEY_BYTES
-    unsigned char* sk1 = (unsigned char*)malloc(CRYPTO_ED25519_SECRETKEY_BYTES * sizeof(unsigned char)); //CRYPTO_ED25519_SECRETKEY_BYTES
-    unsigned char* seed = (unsigned char*)malloc(32 * sizeof(unsigned char));
+    unsigned char *pk1 = NULL;
+    unsigned char *sk1 = NULL;
+    size_t st_pubKeyLen = 0;
+    size_t st_privKeyLen = 0;
+    size_t st_edSize = 0;
 
- 	start_cycles = cpucycles();
- 	// start = clock();
+    start_cycles = cpucycles();
 
- 	int r1 = crypto_sign_ed25519_keypair_seed(pk1, sk1, seed);
+    // Gera chave ECC se aplicável
+    if (params.ecc_nid != 0) {
+        ev_key = generate_key(params.ecc_nid);
+        if (!ev_key) {
+            fprintf(stderr, "Erro ao gerar chave para NID %d.\n", params.ecc_nid);
+            return -1;
+        }
 
-	if (r1 != 0) {
-		return -2;
-	}
+        if (params.ecc_nid != NID_ED25519 && params.ecc_nid != NID_ED448) {
+            pk1 = get_serialized_public_key(ev_key, &st_pubKeyLen);
+            sk1 = get_serialized_private_key(ev_key, &st_privKeyLen);
+        } else {
+            // Para EdDSA (ed25519 e ed448), serialize usando o formato raw
+            st_edSize = (params.ecc_nid == NID_ED448) ? 57 : 32;
+            pk1 = (unsigned char*)malloc(st_edSize);
+            sk1 = (unsigned char*)malloc(st_edSize);
 
-	for (int i = 0; i < CRYPTO_ED25519_PUBLICKEY_BYTES; i++) {
-		publicArea->unique.dilithium.t.buffer[i] = pk1[i];
-	}
+            if (!pk1 || EVP_PKEY_get_raw_public_key(ev_key, pk1, &st_edSize) <= 0 ||
+                !sk1 || EVP_PKEY_get_raw_private_key(ev_key, sk1, &st_edSize) <= 0) {
+                fprintf(stderr, "Erro ao obter chaves raw.\n");
+                ERR_print_errors_fp(stderr);
+                EVP_PKEY_free(ev_key);
+                return -2;
+            }
+        }
 
-	for (int i = 0; i < CRYPTO_ED25519_SECRETKEY_BYTES; i++) { //secret key includes public key
-		sensitive->sensitive.dilithium.t.buffer[i] = sk1[i];
-	}
+        memcpy(publicArea->unique.dilithium.t.buffer, pk1, params.ecc_pk_size);
+        memcpy(sensitive->sensitive.dilithium.t.buffer, sk1, params.ecc_sk_size);
 
-	free(pk1);
-	free(sk1);
-	free(seed);
+        free(pk1);
+        free(sk1);
+    }
 
     pAssert(dilithiumKey != NULL);
 
-    // Dilithium is only used for signing
+    // Certifica-se que Dilithium é usado para assinatura
     if (!IS_ATTRIBUTE(publicArea->objectAttributes, TPMA_OBJECT, sign))
         ERROR_RETURN(TPM_RC_NO_RESULT);
 
+    int r2 = 0;
+    switch (params.mldsa_level) {
+          case 1:
+              r2 = OQS_SIG_ml_dsa_44_ipd_keypair(
+                      publicArea->unique.dilithium.t.buffer + params.ecc_pk_size,
+                      sensitive->sensitive.dilithium.t.buffer + params.ecc_sk_size);
+              break;
+          case 2:
+              r2 = OQS_SIG_ml_dsa_65_ipd_keypair(
+                      publicArea->unique.dilithium.t.buffer + params.ecc_pk_size,
+                      sensitive->sensitive.dilithium.t.buffer + params.ecc_sk_size);
+              break;
+          case 3:
+              r2 = OQS_SIG_ml_dsa_87_ipd_keypair(
+                      publicArea->unique.dilithium.t.buffer + params.ecc_pk_size,
+                      sensitive->sensitive.dilithium.t.buffer + params.ecc_sk_size);
+              break;
+          default:
+              fprintf(stderr, "Modo inválido: %d\n", params.mldsa_level);
+              return TPM_RC_FAILURE;
+      }
 
-    int r2 = mldsa_crypto_sign_keypair(
-    		publicArea->unique.dilithium.t.buffer+CRYPTO_ED25519_PUBLICKEY_BYTES,
-			sensitive->sensitive.dilithium.t.buffer+CRYPTO_ED25519_SECRETKEY_BYTES);
+    end_cycles = cpucycles();
+    total_cycles = end_cycles - start_cycles - cpucycles_overhead();
+    printf("Total CPU cycles for GenKey: %llu\n", (unsigned long long)total_cycles);
 
-	end_cycles = cpucycles();
-	total_cycles = end_cycles - start_cycles - cpucycles_overhead();
-	printf("Total CPU cycles for GenKey: %llu\n", (unsigned long long)total_cycles);
-    // end = clock();
-    // cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    // printf("Total CPU cycles for GenKey: %f\n", cpu_time_used);
 
     if (r2 != 0) {
-    	return -3;
+        return -3;
     }
 
-    publicArea->unique.dilithium.t.size = CRYPTO_ED25519_PUBLICKEY_BYTES + CRYPTO_PUBLICKEYBYTES;
-    sensitive->sensitive.dilithium.t.size = CRYPTO_ED25519_SECRETKEY_BYTES + CRYPTO_SECRETKEYBYTES;
-
+    publicArea->unique.dilithium.t.size = params.ecc_pk_size + params.mldsa_pk_size;
+    sensitive->sensitive.dilithium.t.size = params.ecc_sk_size + params.mldsa_sk_size;
     retVal = TPM_RC_SUCCESS;
 
- Exit:
+Exit:
+    EVP_PKEY_free(ev_key);
     return retVal;
 }
+
+
+void generate_params(uint8_t tpm_dilithium_mode, Params *params);

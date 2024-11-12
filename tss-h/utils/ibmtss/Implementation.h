@@ -108,7 +108,7 @@
 #endif
 
 #ifdef TPM_TSS_SO_0
-#define MAX_CONTEXT_SIZE		2048
+#define MAX_CONTEXT_SIZE		5000 //2048
 #else
 #define MAX_CONTEXT_SIZE        134217728
 #endif
@@ -547,10 +547,14 @@
 #endif   // ALG_DILITHIUM
 
 #define  TPM_DILITHIUM_MODE_NONE (TPM_DILITHIUM_MODE)(0x00)
-#define  TPM_DILITHIUM_MODE_1    (TPM_DILITHIUM_MODE)(0x01)
-#define  TPM_DILITHIUM_MODE_2    (TPM_DILITHIUM_MODE)(0x02)
-#define  TPM_DILITHIUM_MODE_3    (TPM_DILITHIUM_MODE)(0x03)
-#define  TPM_DILITHIUM_MODE_4    (TPM_DILITHIUM_MODE)(0x04)
+#define  TPM_DILITHIUM_MODE_1    (TPM_DILITHIUM_MODE)(0x01) //mldsa44
+#define  TPM_DILITHIUM_MODE_2    (TPM_DILITHIUM_MODE)(0x02) //mldsa65
+#define  TPM_DILITHIUM_MODE_3    (TPM_DILITHIUM_MODE)(0x03) //mldsa87
+#define  TPM_DILITHIUM_MODE_4    (TPM_DILITHIUM_MODE)(0x04) //mldsa44 + p256
+#define  TPM_DILITHIUM_MODE_5    (TPM_DILITHIUM_MODE)(0x05) //mldsa44 + ed2559
+#define  TPM_DILITHIUM_MODE_6    (TPM_DILITHIUM_MODE)(0x06) //mldsa65 + p384
+#define  TPM_DILITHIUM_MODE_7    (TPM_DILITHIUM_MODE)(0x07) //mldsa87 + p521
+#define  TPM_DILITHIUM_MODE_8    (TPM_DILITHIUM_MODE)(0x08) //mldsa87 + ed448
 /*****************************************************************************/
 /*                             Dilithium Mods                                */
 /*****************************************************************************/

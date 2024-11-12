@@ -58,6 +58,7 @@ LNFLAGS = -ggdb 			\
 	-DTPM_POSIX			\
 	-DTPM_NUVOTON			\
 	-lcrypto			\
+	-L/usr/local/lib -loqs \
 	-lpthread			\
 	-lrt				\
 	-ldl				\
