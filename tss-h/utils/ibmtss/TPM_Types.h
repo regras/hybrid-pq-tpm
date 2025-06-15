@@ -1411,10 +1411,10 @@ typedef TPM2B_DIGEST	TPM2B_AUTH;	/* size limited to the same as the digest struc
 /*****************************************************************************/
 /*                             Dilithium Mods                                */
 /*****************************************************************************/
-#define MAX_DILITHIUM_PUBLIC_KEY_SIZE 1760
-#define MAX_DILITHIUM_SECRET_KEY_SIZE 3856
+#define MAX_DILITHIUM_PUBLIC_KEY_SIZE 2659
+#define MAX_DILITHIUM_SECRET_KEY_SIZE 4962
 #define MAX_DILITHIUM_MESSAGE_SIZE 64
-#define MAX_DILITHIUM_SIGNED_MESSAGE_SIZE MAX_DILITHIUM_MESSAGE_SIZE+3366
+#define MAX_DILITHIUM_SIGNED_MESSAGE_SIZE MAX_DILITHIUM_MESSAGE_SIZE+4766
 
 typedef union {
     struct {

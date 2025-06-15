@@ -48,7 +48,7 @@ CCFLAGS += 	-DTPM_POSIX
 
 # example of pointing to a locally built openssl 1.1
 # CCFLAGS += 	-I/home/kgold/openssl/include
-CCFLAGS += -I/usr/local/ssl/include/
+CCFLAGS += -I/usr/include/openssl
 
 # compile - for TSS library
 

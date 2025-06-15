@@ -208,13 +208,13 @@
 #define  CONTEXT_COUNTER                UINT64
 #define  MAX_LOADED_SESSIONS            3
 #define  MAX_SESSION_NUM                3
-#define  MAX_LOADED_OBJECTS             5 // Kyber needs a larger number
+#define  MAX_LOADED_OBJECTS             3 // Kyber needs a larger number
 #define  MIN_EVICT_OBJECTS              7	/* for PC Client */
 #define  NUM_POLICY_PCR_GROUP           1
 #define  NUM_AUTHVALUE_PCR_GROUP        1
-#define  MAX_CONTEXT_SIZE               2680
-#define  MAX_DIGEST_BUFFER              2048
-#define  MAX_NV_INDEX_SIZE              4623
+#define  MAX_CONTEXT_SIZE               5000
+#define  MAX_DIGEST_BUFFER              1024
+#define  MAX_NV_INDEX_SIZE              2048
 #define  MAX_NV_BUFFER_SIZE             1024
 #define  MAX_CAP_BUFFER                 1024
 #define  NV_MEMORY_SIZE                 32768 //34971520 // NV increase due to LDAA (31MB)
@@ -225,8 +225,8 @@
 #define  CONTEXT_ENCRYPT_ALGORITHM      AES
 #define  NV_CLOCK_UPDATE_INTERVAL       12
 #define  NUM_POLICY_PCR                 1
-#define  MAX_COMMAND_SIZE               140000000
-#define  MAX_RESPONSE_SIZE              140000000
+#define  MAX_COMMAND_SIZE               7850
+#define  MAX_RESPONSE_SIZE              7850
 #define  ORDERLY_BITS                   8
 #define  MAX_SYM_DATA                   128
 #define  MAX_RNG_ENTROPY_SIZE           64
@@ -486,10 +486,14 @@ typedef  UINT8             TPM_KYBER_SECURITY;
 
 typedef  UINT8             TPM_DILITHIUM_MODE;
 #define  TPM_DILITHIUM_MODE_NONE (TPM_DILITHIUM_MODE)(0x00)
-#define  TPM_DILITHIUM_MODE_1    (TPM_DILITHIUM_MODE)(0x01)
-#define  TPM_DILITHIUM_MODE_2    (TPM_DILITHIUM_MODE)(0x02)
-#define  TPM_DILITHIUM_MODE_3    (TPM_DILITHIUM_MODE)(0x03)
-#define  TPM_DILITHIUM_MODE_4    (TPM_DILITHIUM_MODE)(0x04)
+#define  TPM_DILITHIUM_MODE_1    (TPM_DILITHIUM_MODE)(0x01) //mldsa44
+#define  TPM_DILITHIUM_MODE_2    (TPM_DILITHIUM_MODE)(0x02) //mldsa65
+#define  TPM_DILITHIUM_MODE_3    (TPM_DILITHIUM_MODE)(0x03) //mldsa87
+#define  TPM_DILITHIUM_MODE_4    (TPM_DILITHIUM_MODE)(0x04) //mldsa44 + p256
+#define  TPM_DILITHIUM_MODE_5    (TPM_DILITHIUM_MODE)(0x05) //mldsa44 + ed2559
+#define  TPM_DILITHIUM_MODE_6    (TPM_DILITHIUM_MODE)(0x06) //mldsa65 + p384
+#define  TPM_DILITHIUM_MODE_7    (TPM_DILITHIUM_MODE)(0x07) //mldsa87 + p521
+#define  TPM_DILITHIUM_MODE_8    (TPM_DILITHIUM_MODE)(0x08) //mldsa87 + ed448
 /*****************************************************************************/
 /*                             Dilithium Mods                                */
 /*****************************************************************************/
