@@ -47,21 +47,10 @@ CCFLAGS += -DUSE_BIT_FIELD_STRUCTURES=NO
 # CCFLAGS += -DBIG_ENDIAN_TPM=YES
 
 HEADERS = 				\
-	./dilithium/api.h		\
-	./dilithium/fips202.h \
-	./dilithium/config.h  \
-	./dilithium/params.h  \
-	./dilithium/sign.h  \
-	./dilithium/packing.h  \
-	./dilithium/polyvec.h  \
-	./dilithium/poly.h  \
-	./dilithium/ntt.h \
-	./dilithium/reduce.h  \
-	./dilithium/rounding.h  \
-	./dilithium/symmetric.h  \
-	./hybrid/hybrid.h \
-	./hybrid/hybrid-common.h \
-	./hybrid/tweetnacl.h \
+	./ecc/ecc_keygen.h	\
+	./ecc/ecc_sign.h	\
+	./ecc/ecc_verify.h  \
+	./ecc/ecc_utils.h	\
 	./commom/cpucycles.h \
 	ActivateCredential_fp.h		\
 	AlgorithmCap_fp.h		\
@@ -289,8 +278,6 @@ HEADERS = 				\
 	ntc2lib.h			\
 	ntc2_fp.h \
 	kyber-cbd.h \
-	./dilithium/fips202.h \
-	./dilithium/randombytes.h \
 	kyber-ntt.h \
 	kyber-poly.h \
 	kyber-polyvec.h \
@@ -307,11 +294,10 @@ OBJFILES = \
 	kyber-rng.o \
 	kyber-polyvec.o \
 	fips202.o \
-	./dilithium/fips202.o \
-	./dilithium/randombytes.o \
-	./hybrid/tweetnacl.o \
-	./hybrid/hybrid.o \
-	./hybrid/hybrid-common.o \
+	./ecc/ecc_keygen.o	\
+	./ecc/ecc_sign.o	\
+	./ecc/ecc_verify.o \
+	./ecc/ecc_utils.o	\
 	./commom/cpucycles.o \
 	kyber-reduce.o \
 	kyber-verify.o \
@@ -419,19 +405,10 @@ OBJFILES = \
 	Vendor_TCG_Test.o		\
 					\
 	ntc2lib.o			\
-	ntc2.o	\
-	./dilithium/ntt.o   \
-	./dilithium/packing.o   \
-	./dilithium/poly.o   \
-	./dilithium/polyvec.o   \
-	./dilithium/reduce.o   \
-	./dilithium/rounding.o   \
-	./dilithium/sign.o   \
-	./dilithium/symmetric-shake.o
+	ntc2.o	
 	
 
 fips202.o : $(HEADERS)
-./dilithium/fips202.o : $(HEADERS)
 AlgorithmCap.o			: $(HEADERS)
 AlgorithmTests.o		: $(HEADERS)
 AsymmetricCommands.o		: $(HEADERS)

@@ -58,7 +58,8 @@
 #include <openssl/objects.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
-#include <openssl/dilithium.h>
+//#include <openssl/dilithium.h>
+#include <oqs/oqs.h>
 
 #ifndef TPM_TSS_NOECC
 #include <openssl/ec.h>
@@ -157,20 +158,45 @@ TPM_RC convertEvpPkeyToEckey(EC_KEY **ecKey,		/* freed by caller */
 
 #ifndef TPM_TSS_NOKYBER
 /* convertEvpPkeyToKyberkey retrieves the Kyber key token from the EVP_PKEY */
-TPM_RC convertEvpPkeyToKyberkey(Kyber    **KyberKey,		/* freed by caller */
-                                EVP_PKEY *evpPkey)
-{
-  TPM_RC 	rc = 0;
+//TPM_RC convertEvpPkeyToKyberkey(Kyber    **KyberKey,		/* freed by caller */
+//                                EVP_PKEY *evpPkey)
+//{
+//  TPM_RC 	rc = 0;
+//
+//  if (rc == 0) {
+//	*KyberKey = EVP_PKEY_get1_Kyber(evpPkey);
+//	if (*KyberKey == NULL) {
+//      printf("convertEvpPkeyToKyberkey: Error extracting Kyber key from EVP_PKEY\n");
+//      rc = EXIT_FAILURE;
+//	}
+//  }
+//  return rc;
+//}
+//TPM_RC convertEvpPkeyToKyberkey(uint8_t **public_key,  /* freed by caller */
+//                                size_t   *public_key_len,
+//                                EVP_PKEY *evpPkey)
+//{
+//    TPM_RC rc = 0;
+//
+//    if (rc == 0) {
+//        // Primeiro, descubra o tamanho da chave pública
+//        if (EVP_PKEY_get_octet_string_param(evpPkey, "pub", NULL, 0, public_key_len) != 1) {
+//            printf("convertEvpPkeyToKyberkey: failed to get public key size\n");
+//            rc = TSS_RC_RSA_KEY_CONVERT;
+//        }
+//    }
+//
+//    if (rc == 0) {
+//        rc = TSS_Malloc(public_key, *public_key_len);
+//        if (rc == 0 && EVP_PKEY_get_octet_string_param(evpPkey, "pub", *public_key, *public_key_len, NULL) != 1) {
+//            printf("convertEvpPkeyToKyberkey: failed to extract public key\n");
+//            rc = TSS_RC_RSA_KEY_CONVERT;
+//        }
+//    }
+//
+//    return rc;
+//}
 
-  if (rc == 0) {
-	*KyberKey = EVP_PKEY_get1_Kyber(evpPkey);
-	if (*KyberKey == NULL) {
-      printf("convertEvpPkeyToKyberkey: Error extracting Kyber key from EVP_PKEY\n");
-      rc = EXIT_FAILURE;
-	}
-  }
-  return rc;
-}
 #endif	/* TPM_TSS_NOKYBER */
 
 /* convertEvpPkeyToRsakey() retrieves the RSA key token from the EVP_PKEY */
@@ -627,55 +653,55 @@ TPM_RC convertRsaPublicKeyBinToPublic(TPM2B_PUBLIC 		*objectPublic,
 
 #ifndef TPM_TSS_NOKYBER
 /* convertRsaPublicKeyBinToPublic() converts a public modulus to a TPM2B_PUBLIC structure. */
-TPM_RC convertKyberPublicKeyBinToPublic(TPM2B_PUBLIC       *objectPublic,
-                                        int                 keyType,
-                                        TPMI_ALG_HASH       nalg,
-                                        TPM_KYBER_SECURITY  kyber_k,
-                                        int                 modulusBytes,
-                                        uint8_t            *modulusBin)
-{
-    TPM_RC 		rc = 0;
-
-    if (rc == 0) {
-	if ((size_t)modulusBytes > sizeof(objectPublic->publicArea.unique.kyber.t.buffer)) {
-	    printf("convertKyberPublicKeyBinToPublic: Error, "
-		   "public key modulus %d greater than %lu\n", modulusBytes,
-		   (unsigned long)sizeof(objectPublic->publicArea.unique.kyber.t.buffer));
-	    rc = EXIT_FAILURE;
-	}
-    }
-    if (rc == 0) {
-	/* Table 184 - Definition of TPMT_PUBLIC Structure */
-	objectPublic->publicArea.type = TPM_ALG_KYBER;
-	objectPublic->publicArea.nameAlg = nalg;
-	objectPublic->publicArea.objectAttributes.val = TPMA_OBJECT_NODA;
-	objectPublic->publicArea.objectAttributes.val |= TPMA_OBJECT_USERWITHAUTH;
-	switch (keyType) {
-	  case TYPE_ST:		/* for public part only */
-	    objectPublic->publicArea.objectAttributes.val |= TPMA_OBJECT_DECRYPT;
-	    objectPublic->publicArea.objectAttributes.val |= TPMA_OBJECT_RESTRICTED;
-	    objectPublic->publicArea.parameters.kyberDetail.symmetric.algorithm = TPM_ALG_AES;
-	    objectPublic->publicArea.parameters.kyberDetail.symmetric.keyBits.aes = 128;
-	    objectPublic->publicArea.parameters.kyberDetail.symmetric.mode.aes = TPM_ALG_CFB;
-	    objectPublic->publicArea.parameters.kyberDetail.scheme.details.anySig.hashAlg = 0;
-	    break;
-	  case TYPE_DEN:	/* for public and private part */
-	    objectPublic->publicArea.objectAttributes.val |= TPMA_OBJECT_DECRYPT;
-	    objectPublic->publicArea.objectAttributes.val &= ~TPMA_OBJECT_RESTRICTED;
-	    objectPublic->publicArea.parameters.kyberDetail.symmetric.algorithm = TPM_ALG_NULL;
-	    break;
-	}
-	objectPublic->publicArea.authPolicy.t.size = 0;
-	/* Table 182 - Definition of TPMU_PUBLIC_PARMS Union <IN/OUT, S> */
-	objectPublic->publicArea.parameters.kyberDetail.scheme.scheme = TPM_ALG_NULL;
-	objectPublic->publicArea.parameters.kyberDetail.scheme.details.anySig.hashAlg = 0;
-	objectPublic->publicArea.parameters.kyberDetail.security = kyber_k;
-
-	objectPublic->publicArea.unique.kyber.t.size = modulusBytes;
-	memcpy(objectPublic->publicArea.unique.kyber.t.buffer, modulusBin, modulusBytes);
-    }
-    return rc;
-}
+//TPM_RC convertKyberPublicKeyBinToPublic(TPM2B_PUBLIC       *objectPublic,
+//                                        int                 keyType,
+//                                        TPMI_ALG_HASH       nalg,
+//                                        TPM_KYBER_SECURITY  kyber_k,
+//                                        int                 modulusBytes,
+//                                        uint8_t            *modulusBin)
+//{
+//    TPM_RC 		rc = 0;
+//
+//    if (rc == 0) {
+//	if ((size_t)modulusBytes > sizeof(objectPublic->publicArea.unique.kyber.t.buffer)) {
+//	    printf("convertKyberPublicKeyBinToPublic: Error, "
+//		   "public key modulus %d greater than %lu\n", modulusBytes,
+//		   (unsigned long)sizeof(objectPublic->publicArea.unique.kyber.t.buffer));
+//	    rc = EXIT_FAILURE;
+//	}
+//    }
+//    if (rc == 0) {
+//	/* Table 184 - Definition of TPMT_PUBLIC Structure */
+//	objectPublic->publicArea.type = TPM_ALG_KYBER;
+//	objectPublic->publicArea.nameAlg = nalg;
+//	objectPublic->publicArea.objectAttributes.val = TPMA_OBJECT_NODA;
+//	objectPublic->publicArea.objectAttributes.val |= TPMA_OBJECT_USERWITHAUTH;
+//	switch (keyType) {
+//	  case TYPE_ST:		/* for public part only */
+//	    objectPublic->publicArea.objectAttributes.val |= TPMA_OBJECT_DECRYPT;
+//	    objectPublic->publicArea.objectAttributes.val |= TPMA_OBJECT_RESTRICTED;
+//	    objectPublic->publicArea.parameters.kyberDetail.symmetric.algorithm = TPM_ALG_AES;
+//	    objectPublic->publicArea.parameters.kyberDetail.symmetric.keyBits.aes = 128;
+//	    objectPublic->publicArea.parameters.kyberDetail.symmetric.mode.aes = TPM_ALG_CFB;
+//	    objectPublic->publicArea.parameters.kyberDetail.scheme.details.anySig.hashAlg = 0;
+//	    break;
+//	  case TYPE_DEN:	/* for public and private part */
+//	    objectPublic->publicArea.objectAttributes.val |= TPMA_OBJECT_DECRYPT;
+//	    objectPublic->publicArea.objectAttributes.val &= ~TPMA_OBJECT_RESTRICTED;
+//	    objectPublic->publicArea.parameters.kyberDetail.symmetric.algorithm = TPM_ALG_NULL;
+//	    break;
+//	}
+//	objectPublic->publicArea.authPolicy.t.size = 0;
+//	/* Table 182 - Definition of TPMU_PUBLIC_PARMS Union <IN/OUT, S> */
+//	objectPublic->publicArea.parameters.kyberDetail.scheme.scheme = TPM_ALG_NULL;
+//	objectPublic->publicArea.parameters.kyberDetail.scheme.details.anySig.hashAlg = 0;
+//	objectPublic->publicArea.parameters.kyberDetail.security = kyber_k;
+//
+//	objectPublic->publicArea.unique.kyber.t.size = modulusBytes;
+//	memcpy(objectPublic->publicArea.unique.kyber.t.buffer, modulusBin, modulusBytes);
+//    }
+//    return rc;
+//}
 #endif /* TPM_TSS_NOKYBER */
 
 #ifdef TPM_TPM20
@@ -920,37 +946,37 @@ TPM_RC convertEcPemToPublic(TPM2B_PUBLIC 	*objectPublic,
 #ifndef TPM_TSS_NOKYBER
 /* convertKyberPemToPublic() converts an Kyber P256 signing public key in PEM format to a
    TPM2B_PUBLIC */
-TPM_RC convertKyberPemToPublic(TPM2B_PUBLIC  *objectPublic,
-                               int            keyType,
-                               TPMI_ALG_HASH  nalg,
-                               const char    *pemKeyFilename)
-{
-  TPM_RC	rc       = 0;
-  EVP_PKEY *evpPkey  = NULL;
-  Kyber    *KyberKey = NULL;
-
-  if (rc == 0) {
-	rc = convertPemToEvpPubKey(&evpPkey,		/* freed @1 */
-                               pemKeyFilename);
-  }
-  if (rc == 0) {
-	rc = convertEvpPkeyToKyberkey(&KyberKey,		/* freed @2 */
-                                  evpPkey);
-  }
-  if (rc == 0) {
-	rc = convertKyberKeyToPublic(objectPublic,
-                                 keyType,
-                                 nalg,
-                                 KyberKey);
-  }
-  if (KyberKey != NULL) {
-	kyber_free(KyberKey);   		/* @2 */
-  }
-  if (evpPkey != NULL) {
-	EVP_PKEY_free(evpPkey);		/* @1 */
-  }
-  return rc;
-}
+//TPM_RC convertKyberPemToPublic(TPM2B_PUBLIC  *objectPublic,
+//                               int            keyType,
+//                               TPMI_ALG_HASH  nalg,
+//                               const char    *pemKeyFilename)
+//{
+//  TPM_RC	rc       = 0;
+//  EVP_PKEY *evpPkey  = NULL;
+//  Kyber    *KyberKey = NULL;
+//
+//  if (rc == 0) {
+//	rc = convertPemToEvpPubKey(&evpPkey,		/* freed @1 */
+//                               pemKeyFilename);
+//  }
+//  if (rc == 0) {
+//	rc = convertEvpPkeyToKyberkey(&KyberKey,		/* freed @2 */
+//                                  evpPkey);
+//  }
+//  if (rc == 0) {
+//	rc = convertKyberKeyToPublic(objectPublic,
+//                                 keyType,
+//                                 nalg,
+//                                 KyberKey);
+//  }
+//  if (KyberKey != NULL) {
+//	kyber_free(KyberKey);   		/* @2 */
+//  }
+//  if (evpPkey != NULL) {
+//	EVP_PKEY_free(evpPkey);		/* @1 */
+//  }
+//  return rc;
+//}
 #endif	/* TPM_TSS_NOKYBER */
 
 #endif /* TPM_TSS_NOFILE */
@@ -1242,11 +1268,11 @@ TPM_RC convertPublicToPEM(const TPM2B_PUBLIC *public,
 	    break;
 #endif	/* TPM_TSS_NOECC */
 #ifndef TPM_TSS_NOKYBER
-    case TPM_ALG_KYBER:
-      rc = convertKyberPublicToEvpPubKey(&evpPubkey,		/* freed @1 */
-                         &public->publicArea.unique.kyber,
-                         public->publicArea.parameters.kyberDetail.security);
-      break;
+//    case TPM_ALG_KYBER:
+//      rc = convertKyberPublicToEvpPubKey(&evpPubkey,		/* freed @1 */
+//                         &public->publicArea.unique.kyber,
+//                         public->publicArea.parameters.kyberDetail.security);
+//      break;
 #endif	/* TPM_TSS_NOKYBER */
 	  default:
 	    printf("convertPublicToPEM: Unknown publicArea.type %04hx unsupported\n",
@@ -1398,153 +1424,221 @@ TPM_RC convertEcPublicToEvpPubKey(EVP_PKEY **evpPubkey,		/* freed by caller */
 
 #endif	/* TPM_TSS_NOECC */
 
+//TPM_RC convertDilithiumPublicToEvpPubKey(EVP_PKEY **evpPubkey,	/* freed by caller */
+//			const TPM2B_DILITHIUM_PUBLIC_KEY *tpm2bDilithium,
+//			TPMI_DILITHIUM_MODE dilithium_mode)
+//{
+//    TPM_RC 	rc = 0;
+//    int		irc;
+//    Dilithium		*DilithiumPubKey = NULL;
+//    int public_key_size;
+//    unsigned char *public_key;
+//
+//    if (rc == 0) {
+//	*evpPubkey = EVP_PKEY_new();
+//	if (*evpPubkey == NULL) {
+//	    printf("convertDilithiumPublicToEvpPubKey: EVP_PKEY failed\n");
+//	    rc = TSS_RC_OUT_OF_MEMORY;
+//	}
+//    }
+//    /* TPM to public key */
+//    if (rc == 0) {
+//	DilithiumPubKey = dilithium_new();
+//
+//	public_key_size = tpm2bDilithium->t.size;
+//	public_key = malloc(public_key_size);
+//	if (public_key == NULL) {
+//	    printf("convertDilithiumPublicToEvpPubKey: out of memory\n");
+//	    rc = TSS_RC_OUT_OF_MEMORY;
+//	}
+//
+//	if (rc == 0) {
+//	    memmove(public_key, tpm2bDilithium->t.buffer, public_key_size);
+//
+//	    dilithium_set0_key(DilithiumPubKey, public_key, public_key_size);
+//	    dilithium_set0_crt_params(DilithiumPubKey, dilithium_mode);
+//	}
+//    }
+//    /* Dilithium public key to EVP */
+//    if (rc == 0) {
+//	irc  = EVP_PKEY_assign_Dilithium(*evpPubkey, DilithiumPubKey);
+//	if (irc == 0) {
+//	    dilithium_free(DilithiumPubKey);	/* because not assigned tp EVP_PKEY */
+//	    printf("convertDilithiumPublicToEvpPubKey: EVP_PKEY_assign_Dilithium failed\n");
+//	    rc = TSS_RC_RSA_KEY_CONVERT;
+//	}
+//    }
+//    return rc;
+//}
+
 TPM_RC convertDilithiumPublicToEvpPubKey(EVP_PKEY **evpPubkey,	/* freed by caller */
-			const TPM2B_DILITHIUM_PUBLIC_KEY *tpm2bDilithium,
-			TPMI_DILITHIUM_MODE dilithium_mode)
+	const TPM2B_DILITHIUM_PUBLIC_KEY *tpm2bDilithium,
+	TPMI_DILITHIUM_MODE dilithium_mode)  // ainda mantido, mesmo que não usado
 {
-    TPM_RC 	rc = 0;
-    int		irc;
-    Dilithium		*DilithiumPubKey = NULL;
-    int public_key_size;
-    unsigned char *public_key;
+    TPM_RC rc = 0;
+    EVP_PKEY_CTX *pctx = NULL;
+    OQS_SIG *sig = NULL;
+    OQS_STATUS oqs_rc;
+    size_t public_key_size;
+    unsigned char *public_key = NULL;
+
+    // Inicializa chave EVP
+    if (rc == 0) {
+        *evpPubkey = EVP_PKEY_new();
+        if (*evpPubkey == NULL) {
+            printf("convertDilithiumPublicToEvpPubKey: EVP_PKEY_new failed\n");
+            rc = TSS_RC_OUT_OF_MEMORY;
+        }
+    }
+
+    // Aloca e copia a chave pública do TPM
+    if (rc == 0) {
+        public_key_size = tpm2bDilithium->t.size;
+        public_key = malloc(public_key_size);
+        if (public_key == NULL) {
+            printf("convertDilithiumPublicToEvpPubKey: out of memory\n");
+            rc = TSS_RC_OUT_OF_MEMORY;
+        } else {
+            memcpy(public_key, tpm2bDilithium->t.buffer, public_key_size);
+        }
+    }
+
+    // Inicializa contexto e importa a chave pública
+    if (rc == 0) {
+        pctx = EVP_PKEY_CTX_new_from_name(NULL, "OQS_ML-DSA", NULL);
+        if (pctx == NULL) {
+            printf("convertDilithiumPublicToEvpPubKey: EVP_PKEY_CTX_new_from_name failed\n");
+            rc = TSS_RC_RSA_KEY_CONVERT;
+        }
+    }
 
     if (rc == 0) {
-	*evpPubkey = EVP_PKEY_new();
-	if (*evpPubkey == NULL) {
-	    printf("convertDilithiumPublicToEvpPubKey: EVP_PKEY failed\n");
-	    rc = TSS_RC_OUT_OF_MEMORY;
-	}
+        if (EVP_PKEY_fromdata_init(pctx) <= 0) {
+            printf("convertDilithiumPublicToEvpPubKey: EVP_PKEY_fromdata_init failed\n");
+            rc = TSS_RC_RSA_KEY_CONVERT;
+        }
     }
-    /* TPM to public key */
+
     if (rc == 0) {
-	DilithiumPubKey = dilithium_new();
+        OSSL_PARAM params[] = {
+            OSSL_PARAM_construct_octet_string("pub", public_key, public_key_size),
+            OSSL_PARAM_END
+        };
 
-	public_key_size = tpm2bDilithium->t.size;
-	public_key = malloc(public_key_size);
-	if (public_key == NULL) {
-	    printf("convertDilithiumPublicToEvpPubKey: out of memory\n");
-	    rc = TSS_RC_OUT_OF_MEMORY;
-	}
-
-	if (rc == 0) {
-	    memmove(public_key, tpm2bDilithium->t.buffer, public_key_size);
-
-	    dilithium_set0_key(DilithiumPubKey, public_key, public_key_size);
-	    dilithium_set0_crt_params(DilithiumPubKey, dilithium_mode);
-	}
+        if (EVP_PKEY_fromdata(pctx, evpPubkey, EVP_PKEY_PUBLIC_KEY, params) <= 0) {
+            printf("convertDilithiumPublicToEvpPubKey: EVP_PKEY_fromdata failed\n");
+            rc = TSS_RC_RSA_KEY_CONVERT;
+        }
     }
-    /* Dilithium public key to EVP */
-    if (rc == 0) {
-	irc  = EVP_PKEY_assign_Dilithium(*evpPubkey, DilithiumPubKey);
-	if (irc == 0) {
-	    dilithium_free(DilithiumPubKey);	/* because not assigned tp EVP_PKEY */
-	    printf("convertDilithiumPublicToEvpPubKey: EVP_PKEY_assign_Dilithium failed\n");
-	    rc = TSS_RC_RSA_KEY_CONVERT;
-	}
-    }
+
+    // Libera recursos
+    if (pctx != NULL) EVP_PKEY_CTX_free(pctx);
+    if (public_key != NULL) free(public_key);
+
     return rc;
 }
 
 #ifndef TPM_TSS_NOKYBER
-TPM_RC convertKyberKeyToPublicKeyBin(int                 *modulusBytes,
-                                     uint8_t            **modulusBin, /* freed by caller */
-                                     TPM_KYBER_SECURITY  *kyber_k,
-                                     const Kyber         *kyberKey)
-{
-    TPM_RC 		rc = 0;
-    const uint8_t	*public_key;
-    const int 		*k;
+//TPM_RC convertKyberKeyToPublicKeyBin(int                 *modulusBytes,
+//                                     uint8_t            **modulusBin, /* freed by caller */
+//                                     TPM_KYBER_SECURITY  *kyber_k,
+//                                     const Kyber         *kyberKey)
+//{
+//    TPM_RC 		rc = 0;
+//    const uint8_t	*public_key;
+//    const int 		*k;
+//
+//    kyber_get0_key(kyberKey, &public_key, modulusBytes);
+//    kyber_get0_crt_params(kyberKey, &k);
+//
+//    if (rc == 0) {
+//	rc = TSS_Malloc(modulusBin, *modulusBytes);
+//    }
+//    if (rc == 0) {
+//	memcpy(*modulusBin, public_key, *modulusBytes);
+//	*kyber_k = *k;
+//    }
+//    return rc;
+//}
+//
+//
+//TPM_RC convertKyberPublicToEvpPubKey(EVP_PKEY                     **evpPubkey, /* freed by caller */
+//                                     const TPM2B_KYBER_PUBLIC_KEY  *tpm2bKyber,
+//                                     TPM_KYBER_SECURITY             kyber_k)
+//{
+//    TPM_RC 	rc = 0;
+//    int		irc;
+//    Kyber		*KyberPubKey = NULL;
+//    int public_key_size;
+//    unsigned char *public_key;
+//
+//    if (rc == 0) {
+//	*evpPubkey = EVP_PKEY_new();
+//	if (*evpPubkey == NULL) {
+//	    printf("convertKyberPublicToEvpPubKey: EVP_PKEY failed\n");
+//	    rc = TSS_RC_OUT_OF_MEMORY;
+//	}
+//    }
+//    /* TPM to public key */
+//    if (rc == 0) {
+//	KyberPubKey = kyber_new();
+//
+//	public_key_size = tpm2bKyber->t.size;
+//	public_key = malloc(public_key_size);
+//	if (public_key == NULL) {
+//	    printf("convertKyberPublicToEvpPubKey: out of memory\n");
+//	    rc = TSS_RC_OUT_OF_MEMORY;
+//	}
+//
+//	if (rc == 0) {
+//	    memmove(public_key, tpm2bKyber->t.buffer, public_key_size);
+//
+//	    kyber_set0_key(KyberPubKey, public_key, public_key_size);
+//	    kyber_set0_crt_params(KyberPubKey, kyber_k);
+//	}
+//    }
+//    /* Kyber public key to EVP */
+//    if (rc == 0) {
+//	irc  = EVP_PKEY_assign_Kyber(*evpPubkey, KyberPubKey);
+//	if (irc == 0) {
+//	    kyber_free(KyberPubKey);	/* because not assigned tp EVP_PKEY */
+//	    printf("convertKyberPublicToEvpPubKey: EVP_PKEY_assign_Kyber failed\n");
+//	    rc = TSS_RC_RSA_KEY_CONVERT;
+//	}
+//    }
+//    return rc;
+//}
+///* convertKYBERKeyToPublicKeyBin() converts an OpenSSL KYBER_KEY public key token to a binary array */
+//TPM_RC convertKyberKeyToPublic(TPM2B_PUBLIC  *objectPublic,
+//                               int            keyType,
+//                               TPMI_ALG_HASH  nalg,
+//                               Kyber         *kyberKey)
+//{
+//    TPM_RC 		rc = 0;
+//    int 		modulusBytes;
+//    uint8_t 		*modulusBin = NULL;
+//    TPM_KYBER_SECURITY  kyber_k;
+//
+//    /* openssl  Kyber token to a public modulus */
+//    if (rc == 0) {
+//	rc = convertKyberKeyToPublicKeyBin(&modulusBytes,
+//                                       &modulusBin,		/* freed @1 */
+//                                       &kyber_k,
+//                                       kyberKey);
+//    }
+//    /* public modulus to TPM2B_PUBLIC */
+//    if (rc == 0) {
+//	rc = convertKyberPublicKeyBinToPublic(objectPublic,
+//                                          keyType,
+//                                          nalg,
+//                                          kyber_k,
+//                                          modulusBytes,
+//                                          modulusBin);
+//    }
+//    free(modulusBin);		/* @1 */
+//    return rc;
+//}
 
-    kyber_get0_key(kyberKey, &public_key, modulusBytes);
-    kyber_get0_crt_params(kyberKey, &k);
-
-    if (rc == 0) {
-	rc = TSS_Malloc(modulusBin, *modulusBytes);
-    }
-    if (rc == 0) {
-	memcpy(*modulusBin, public_key, *modulusBytes);
-	*kyber_k = *k;
-    }
-    return rc;
-}
-
-
-TPM_RC convertKyberPublicToEvpPubKey(EVP_PKEY                     **evpPubkey, /* freed by caller */
-                                     const TPM2B_KYBER_PUBLIC_KEY  *tpm2bKyber,
-                                     TPM_KYBER_SECURITY             kyber_k)
-{
-    TPM_RC 	rc = 0;
-    int		irc;
-    Kyber		*KyberPubKey = NULL;
-    int public_key_size;
-    unsigned char *public_key;
-
-    if (rc == 0) {
-	*evpPubkey = EVP_PKEY_new();
-	if (*evpPubkey == NULL) {
-	    printf("convertKyberPublicToEvpPubKey: EVP_PKEY failed\n");
-	    rc = TSS_RC_OUT_OF_MEMORY;
-	}
-    }
-    /* TPM to public key */
-    if (rc == 0) {
-	KyberPubKey = kyber_new();
-
-	public_key_size = tpm2bKyber->t.size;
-	public_key = malloc(public_key_size);
-	if (public_key == NULL) {
-	    printf("convertKyberPublicToEvpPubKey: out of memory\n");
-	    rc = TSS_RC_OUT_OF_MEMORY;
-	}
-
-	if (rc == 0) {
-	    memmove(public_key, tpm2bKyber->t.buffer, public_key_size);
-
-	    kyber_set0_key(KyberPubKey, public_key, public_key_size);
-	    kyber_set0_crt_params(KyberPubKey, kyber_k);
-	}
-    }
-    /* Kyber public key to EVP */
-    if (rc == 0) {
-	irc  = EVP_PKEY_assign_Kyber(*evpPubkey, KyberPubKey);
-	if (irc == 0) {
-	    kyber_free(KyberPubKey);	/* because not assigned tp EVP_PKEY */
-	    printf("convertKyberPublicToEvpPubKey: EVP_PKEY_assign_Kyber failed\n");
-	    rc = TSS_RC_RSA_KEY_CONVERT;
-	}
-    }
-    return rc;
-}
-/* convertKYBERKeyToPublicKeyBin() converts an OpenSSL KYBER_KEY public key token to a binary array */
-TPM_RC convertKyberKeyToPublic(TPM2B_PUBLIC  *objectPublic,
-                               int            keyType,
-                               TPMI_ALG_HASH  nalg,
-                               Kyber         *kyberKey)
-{
-    TPM_RC 		rc = 0;
-    int 		modulusBytes;
-    uint8_t 		*modulusBin = NULL;
-    TPM_KYBER_SECURITY  kyber_k;
-
-    /* openssl  Kyber token to a public modulus */
-    if (rc == 0) {
-	rc = convertKyberKeyToPublicKeyBin(&modulusBytes,
-                                       &modulusBin,		/* freed @1 */
-                                       &kyber_k,
-                                       kyberKey);
-    }
-    /* public modulus to TPM2B_PUBLIC */
-    if (rc == 0) {
-	rc = convertKyberPublicKeyBinToPublic(objectPublic,
-                                          keyType,
-                                          nalg,
-                                          kyber_k,
-                                          modulusBytes,
-                                          modulusBin);
-    }
-    free(modulusBin);		/* @1 */
-    return rc;
-}
 #endif /* TPM_TSS_NOKYBER */
 
 #ifndef TPM_TSS_NOFILE

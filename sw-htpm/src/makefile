@@ -58,12 +58,14 @@ LNFLAGS = -ggdb 			\
 	-DTPM_POSIX			\
 	-DTPM_NUVOTON			\
 	-lcrypto			\
+	-L/usr/local/lib -loqs \
 	-lpthread			\
 	-lrt				\
 	-ldl				\
 	-I.
 
 all:	tpm_server
+cpu:	tpm_server_cpu
 
 CRYPTO_SUBSYSTEM = openssl
 
@@ -78,9 +80,12 @@ TcpServerPosix.o	: $(HEADERS)
 
 tpm_server:	$(OBJFILES)
 		$(CC) $(OBJFILES) $(LNFLAGS) -o tpm_server
+		
+tpm_server_cpu:	$(OBJFILES)
+		$(CC) $(OBJFILES) $(LNFLAGS) -UDBENCH -o tpm_server
 
 clean:
-		rm -f *.o tpm_server *~
+		rm -f *.o tpm_server NVChip *~
 
 %.o:		%.c
 		$(CC) $(CCFLAGS) $< -o $@

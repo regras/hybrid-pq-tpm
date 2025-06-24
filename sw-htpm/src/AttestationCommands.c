@@ -141,9 +141,9 @@ TPM2_CertifyCreation(
 			  &out->signature);
 }
 #endif // CC_CertifyCreation
-#include <stdint.h>
-#include <stdio.h>
-#include "./commom/cpucycles.h"
+//#include <stdint.h>
+//#include <stdio.h>
+//#include "./commom/cpucycles.h"
 
 #include "Tpm.h"
 #include "Attest_spt_fp.h"
@@ -160,7 +160,7 @@ TPM2_Quote(
     TPM_RC                  result;
     OBJECT                 *signObject = HandleToObject(in->signHandle);
 
-    uint64_t start_cycles, end_cycles, total_cycles;
+//    uint64_t start_cycles, end_cycles, total_cycles;
 
     // Input Validation
     if(!IsSigningObject(signObject))
@@ -182,7 +182,7 @@ TPM2_Quote(
     if(hashAlg == TPM_ALG_NULL)
 	return TPM_RCS_SCHEME + RC_Quote_inScheme;
 
-    start_cycles = cpucycles();
+//    start_cycles = cpucycles();
     // Compute PCR digest
     PCRComputeCurrentDigest(hashAlg, &in->PCRselect,
 			    &quoted.attested.quote.pcrDigest);
@@ -194,9 +194,9 @@ TPM2_Quote(
     result = SignAttestInfo(signObject, &in->inScheme, &quoted, &in->qualifyingData,
 			  &out->quoted, &out->signature);
 
-    end_cycles = cpucycles();
-    total_cycles = end_cycles - start_cycles - cpucycles_overhead();
-    printf("Total CPU cycles for Quote: %llu\n", (unsigned long long)total_cycles);
+//    end_cycles = cpucycles();
+//    total_cycles = end_cycles - start_cycles - cpucycles_overhead();
+//    printf("Total CPU cycles for Quote: %llu\n", (unsigned long long)total_cycles);
     return result;
 }
 #endif // CC_Quote
