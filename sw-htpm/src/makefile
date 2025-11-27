@@ -57,7 +57,7 @@ LNFLAGS = -ggdb 			\
     -lm \
 	-DTPM_POSIX			\
 	-DTPM_NUVOTON			\
-	/home/rampz/openssl3/lib64/libcrypto.a \
+	/home/<USER>/openssl3/lib64/libcrypto.a \
 	/usr/local/lib/liboqs.a \
 	-lpthread			\
 	-lrt				\

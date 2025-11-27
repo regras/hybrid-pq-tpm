@@ -1,1 +1,2 @@
 *.o
+sw-htpm/src/tpm_server
