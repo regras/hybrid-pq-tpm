@@ -208,13 +208,13 @@
 #define  CONTEXT_COUNTER                UINT64
 #define  MAX_LOADED_SESSIONS            3
 #define  MAX_SESSION_NUM                3
-#define  MAX_LOADED_OBJECTS             5 // Kyber needs a larger number
+#define  MAX_LOADED_OBJECTS             3 // Kyber needs a larger number
 #define  MIN_EVICT_OBJECTS              7	/* for PC Client */
 #define  NUM_POLICY_PCR_GROUP           1
 #define  NUM_AUTHVALUE_PCR_GROUP        1
-#define  MAX_CONTEXT_SIZE               5000 //2680
-#define  MAX_DIGEST_BUFFER              2048
-#define  MAX_NV_INDEX_SIZE              4623
+#define  MAX_CONTEXT_SIZE               5000
+#define  MAX_DIGEST_BUFFER              1024
+#define  MAX_NV_INDEX_SIZE              2048
 #define  MAX_NV_BUFFER_SIZE             1024
 #define  MAX_CAP_BUFFER                 1024
 #define  NV_MEMORY_SIZE                 32768 //34971520 // NV increase due to LDAA (31MB)
@@ -225,8 +225,8 @@
 #define  CONTEXT_ENCRYPT_ALGORITHM      AES
 #define  NV_CLOCK_UPDATE_INTERVAL       12
 #define  NUM_POLICY_PCR                 1
-#define  MAX_COMMAND_SIZE               140000000
-#define  MAX_RESPONSE_SIZE              140000000
+#define  MAX_COMMAND_SIZE               7850
+#define  MAX_RESPONSE_SIZE              7850
 #define  ORDERLY_BITS                   8
 #define  MAX_SYM_DATA                   128
 #define  MAX_RNG_ENTROPY_SIZE           64

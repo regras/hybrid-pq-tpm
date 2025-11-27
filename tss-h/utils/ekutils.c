@@ -336,27 +336,27 @@ void getEccTemplate(TPMT_PUBLIC *tpmtPublic)
     return;
 }
 
-void getKyberTemplate(TPMT_PUBLIC *tpmtPublic, TPM_KYBER_SECURITY kyber_k)
-{
-    tpmtPublic->type = TPM_ALG_KYBER;
-    tpmtPublic->nameAlg = TPM_ALG_SHA256;
-    tpmtPublic->objectAttributes.val = TPMA_OBJECT_FIXEDTPM |
-				       TPMA_OBJECT_FIXEDPARENT |
-				       TPMA_OBJECT_SENSITIVEDATAORIGIN |
-				       TPMA_OBJECT_ADMINWITHPOLICY |
-				       TPMA_OBJECT_RESTRICTED |
-				       TPMA_OBJECT_DECRYPT;
-    tpmtPublic->authPolicy.t.size = sizeof(iwgPolicy);
-    memcpy(tpmtPublic->authPolicy.t.buffer, iwgPolicy, sizeof(iwgPolicy));
-    tpmtPublic->parameters.kyberDetail.symmetric.algorithm = TPM_ALG_AES;
-    tpmtPublic->parameters.kyberDetail.symmetric.keyBits.aes = 128;
-    tpmtPublic->parameters.kyberDetail.symmetric.mode.aes = TPM_ALG_CFB;
-    tpmtPublic->parameters.kyberDetail.scheme.scheme = TPM_ALG_NULL;
-    tpmtPublic->parameters.kyberDetail.scheme.details.anySig.hashAlg = 0;
-    tpmtPublic->parameters.kyberDetail.security = kyber_k;
-    tpmtPublic->unique.kyber.t.size = 0;
-    return;
-}
+//void getKyberTemplate(TPMT_PUBLIC *tpmtPublic, TPM_KYBER_SECURITY kyber_k)
+//{
+//    tpmtPublic->type = TPM_ALG_KYBER;
+//    tpmtPublic->nameAlg = TPM_ALG_SHA256;
+//    tpmtPublic->objectAttributes.val = TPMA_OBJECT_FIXEDTPM |
+//				       TPMA_OBJECT_FIXEDPARENT |
+//				       TPMA_OBJECT_SENSITIVEDATAORIGIN |
+//				       TPMA_OBJECT_ADMINWITHPOLICY |
+//				       TPMA_OBJECT_RESTRICTED |
+//				       TPMA_OBJECT_DECRYPT;
+//    tpmtPublic->authPolicy.t.size = sizeof(iwgPolicy);
+//    memcpy(tpmtPublic->authPolicy.t.buffer, iwgPolicy, sizeof(iwgPolicy));
+//    tpmtPublic->parameters.kyberDetail.symmetric.algorithm = TPM_ALG_AES;
+//    tpmtPublic->parameters.kyberDetail.symmetric.keyBits.aes = 128;
+//    tpmtPublic->parameters.kyberDetail.symmetric.mode.aes = TPM_ALG_CFB;
+//    tpmtPublic->parameters.kyberDetail.scheme.scheme = TPM_ALG_NULL;
+//    tpmtPublic->parameters.kyberDetail.scheme.details.anySig.hashAlg = 0;
+//    tpmtPublic->parameters.kyberDetail.security = kyber_k;
+//    tpmtPublic->unique.kyber.t.size = 0;
+//    return;
+//}
 
 /* getIndexX509Certificate() reads the X509 certificate from the nvIndex and converts the DER
    (binary) to OpenSSL X509 format
@@ -1032,40 +1032,40 @@ TPM_RC convertCertificatePubKey(uint8_t **modulusBin,	/* freed by caller */
 		  break;
 #endif	/* TPM_TSS_NOECC */
 #ifndef TPM_TSS_NOKYBER
-	      case EK_CERT_KYBER_INDEX:
-		  {
-		      Kyber *kyberKey = NULL;
-
-		      /* check that the public key algorithm matches the ekCertIndex algorithm */
-		      if (rc == 0) {
-			  if (pkeyType != EVP_PKEY_KYBER) {
-			      printf("convertCertificatePubKey: "
-				     "Public key from X509 certificate is not Kyber\n");
-			      rc = TPM_RC_INTEGRITY;
-			  }
-		      }
-		      /* convert the public key to OpenSSL structure */
-		      if (rc == 0) {
-			  kyberKey = EVP_PKEY_get1_Kyber(pkey);		/* freed @3 */
-			  if (kyberKey == NULL) {
-			      printf("convertCertificatePubKey: Could not extract Kyber public key "
-				     "from X509 certificate\n");
-			      rc = TPM_RC_INTEGRITY;
-			  }
-		      }
-		      if (rc == 0) {
-			  rc = convertKyberKeyToPublicKeyBin(modulusBytes,
-							     modulusBin,	/* freed by caller */
-							     kyber_k,
-							     kyberKey);
-		      }
-		      if (rc == 0) {
-			  if (print) TSS_PrintAll("Certificate public key:",
-						  *modulusBin, *modulusBytes);
-		      }
-		      kyber_free(kyberKey);   		/* @3 */
-		  }
-		  break;
+//	      case EK_CERT_KYBER_INDEX:
+//		  {
+//		      Kyber *kyberKey = NULL;
+//
+//		      /* check that the public key algorithm matches the ekCertIndex algorithm */
+//		      if (rc == 0) {
+//			  if (pkeyType != EVP_PKEY_KYBER) {
+//			      printf("convertCertificatePubKey: "
+//				     "Public key from X509 certificate is not Kyber\n");
+//			      rc = TPM_RC_INTEGRITY;
+//			  }
+//		      }
+//		      /* convert the public key to OpenSSL structure */
+//		      if (rc == 0) {
+//			  kyberKey = EVP_PKEY_get1_Kyber(pkey);		/* freed @3 */
+//			  if (kyberKey == NULL) {
+//			      printf("convertCertificatePubKey: Could not extract Kyber public key "
+//				     "from X509 certificate\n");
+//			      rc = TPM_RC_INTEGRITY;
+//			  }
+//		      }
+//		      if (rc == 0) {
+//			  rc = convertKyberKeyToPublicKeyBin(modulusBytes,
+//							     modulusBin,	/* freed by caller */
+//							     kyber_k,
+//							     kyberKey);
+//		      }
+//		      if (rc == 0) {
+//			  if (print) TSS_PrintAll("Certificate public key:",
+//						  *modulusBin, *modulusBytes);
+//		      }
+//		      kyber_free(kyberKey);   		/* @3 */
+//		  }
+//		  break;
 #endif          /* TPM_TSS_NOKYBER */
 	      default:
 		printf("convertCertificatePubKey: "
@@ -1519,10 +1519,10 @@ TPM_RC createCertificate(char **x509CertString,		/* freed by caller */
 	    rc = addCertKeyDilithium(x509Certificate, &tpmtPublic->unique.dilithium,
 				     tpmtPublic->parameters.dilithiumDetail.mode);
 	    break;
-	  case TPM_ALG_KYBER:
-	    rc = addCertKeyKyber(x509Certificate, &tpmtPublic->unique.kyber,
-				 tpmtPublic->parameters.kyberDetail.security);
-	    break;
+//	  case TPM_ALG_KYBER:
+//	    rc = addCertKeyKyber(x509Certificate, &tpmtPublic->unique.kyber,
+//				 tpmtPublic->parameters.kyberDetail.security);
+//	    break;
 	  default:
 	    printf("createCertificate: public key algorithm %04x not supported\n",
 		   tpmtPublic->type);
@@ -1862,35 +1862,35 @@ TPM_RC addCertKeyDilithium(X509 *x509Certificate,
 /* addCertKeyKyber() adds the TPM KYBER public key (the key to be certified) to the openssl X509
    certificate
 */
-TPM_RC addCertKeyKyber(X509 *x509Certificate,
-		       const TPM2B_KYBER_PUBLIC_KEY *tpm2bKyber,
-		       TPM_KYBER_SECURITY kyber_k)	/* key to be certified */
-{
-    TPM_RC 		rc = 0;		/* general return code */
-    int			irc;		/* integer return code */
-    EVP_PKEY 		*evpPubkey = NULL;	/* EVP format public key to be certified */
-
-    if (verbose) printf("addCertKeyKyber: add public key to certificate\n");
-    /* convert from TPM key data format to openSSL RSA type */
-    if (rc == 0) {
-	rc = convertKyberPublicToEvpPubKey(&evpPubkey,	/* freed @1 */
-					   tpm2bKyber,
-					   kyber_k);
-    }
-    /* add the public key to the certificate */
-    if (rc == 0) {
-	irc = X509_set_pubkey(x509Certificate, evpPubkey);
-	if (irc != 1) {
-	    printf("addCertKeyKyber: Error adding public key to certificate\n");
-	    rc = TSS_RC_X509_ERROR;
-	}
-    }
-    /* cleanup */
-    if (evpPubkey != NULL) {
-	EVP_PKEY_free(evpPubkey);	/* @1 */
-    }
-    return rc;
-}
+//TPM_RC addCertKeyKyber(X509 *x509Certificate,
+//		       const TPM2B_KYBER_PUBLIC_KEY *tpm2bKyber,
+//		       TPM_KYBER_SECURITY kyber_k)	/* key to be certified */
+//{
+//    TPM_RC 		rc = 0;		/* general return code */
+//    int			irc;		/* integer return code */
+//    EVP_PKEY 		*evpPubkey = NULL;	/* EVP format public key to be certified */
+//
+//    if (verbose) printf("addCertKeyKyber: add public key to certificate\n");
+//    /* convert from TPM key data format to openSSL RSA type */
+//    if (rc == 0) {
+//	rc = convertKyberPublicToEvpPubKey(&evpPubkey,	/* freed @1 */
+//					   tpm2bKyber,
+//					   kyber_k);
+//    }
+//    /* add the public key to the certificate */
+//    if (rc == 0) {
+//	irc = X509_set_pubkey(x509Certificate, evpPubkey);
+//	if (irc != 1) {
+//	    printf("addCertKeyKyber: Error adding public key to certificate\n");
+//	    rc = TSS_RC_X509_ERROR;
+//	}
+//    }
+//    /* cleanup */
+//    if (evpPubkey != NULL) {
+//	EVP_PKEY_free(evpPubkey);	/* @1 */
+//    }
+//    return rc;
+//}
 #endif
 
 /* addCertSignatureRoot() uses the openSSL root key to sign the X509 certificate.
@@ -2088,9 +2088,9 @@ TPM_RC processCreatePrimary(TSS_CONTEXT *tssContext,
 	else if (ekCertIndex == EK_CERT_EC_INDEX) {		/* EC primary key */
 	    getEccTemplate(&inCreatePrimary.inPublic.publicArea);
 	}
-	else if (ekCertIndex == EK_CERT_KYBER_INDEX) { /* KYBER primary key */
-	    getKyberTemplate(&inCreatePrimary.inPublic.publicArea, kyber_k);
-	}
+//	else if (ekCertIndex == EK_CERT_KYBER_INDEX) { /* KYBER primary key */
+//	    getKyberTemplate(&inCreatePrimary.inPublic.publicArea, kyber_k);
+//	}
     }
     /* call TSS to execute the command */
     if (rc == 0) {

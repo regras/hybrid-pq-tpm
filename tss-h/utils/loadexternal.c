@@ -431,12 +431,12 @@ int main(int argc, char *argv[])
 		break;
 #endif	/* TPM_TSS_NOECC */
 #ifndef TPM_TSS_NOKYBER
-        case TPM_ALG_KYBER:
-          rc = convertKyberPemToPublic(&in.inPublic,
-                                       keyType,
-                                       nalg,
-                                       pemKeyFilename);
-          break;
+//        case TPM_ALG_KYBER:
+//          rc = convertKyberPemToPublic(&in.inPublic,
+//                                       keyType,
+//                                       nalg,
+//                                       pemKeyFilename);
+//          break;
 #endif	/* TPM_TSS_NOKYBER */
 	      default:
 		printf("-rsa algorithm %04x not supported\n", algPublic);

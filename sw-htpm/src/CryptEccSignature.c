@@ -170,6 +170,9 @@ BnSignEcdsa(
     // 6. Compute s = (k^-1 *  (e + d *  r)) mod q. If s = 0, return to Step 1.2.
     // 7. Return (r, s).
     // In the code below, q is n (that it, the order of the curve is p)
+
+    uint64_t start_cycles, end_cycles, total_cycles;
+    start_cycles = cpucycles();
     do // This implements the loop at step 6. If s is zero, start over.
 	{
 	    for(; tries > 0; tries--)
@@ -204,6 +207,9 @@ BnSignEcdsa(
 	    BnModMult(bnS, bnIk, bnS, order);
 	    // If S is zero, try again
 	} while(BnEqualZero(bnS));
+    end_cycles = cpucycles();
+    total_cycles = end_cycles - start_cycles - cpucycles_overhead();
+    printf("Total CPU cycles for Sign: %llu\n", (unsigned long long)total_cycles);
  Exit:
     return retVal;
 }
@@ -509,7 +515,6 @@ CryptEccSign(
     ECC_NUM(bnS);
     const ECC_CURVE_DATA   *C;
     TPM_RC                  retVal = TPM_RC_SCHEME;
-    uint64_t start_cycles, end_cycles, total_cycles;
 
     //
     NOT_REFERENCED(scheme);
@@ -522,7 +527,6 @@ CryptEccSign(
 	= sizeof(signature->signature.ecdaa.signatureS.t.buffer);
     TEST(signature->sigAlg);
 
-    start_cycles = cpucycles();
 
     switch(signature->sigAlg)
 	{
@@ -552,9 +556,7 @@ CryptEccSign(
 	    break;
 	}
 
-    end_cycles = cpucycles();
-    total_cycles = end_cycles - start_cycles - cpucycles_overhead();
-    printf("Total CPU cycles for Sign: %llu\n", (unsigned long long)total_cycles);
+
     // If signature generation worked, convert the results.
     if(retVal == TPM_RC_SUCCESS)
 	{
@@ -604,6 +606,8 @@ BnValidateSignatureEcdsa(
     // 3. Convert the bit string H0 to an integer e as described in Appendix B.2.
     // Done at entry
     // 4. Compute w = (s')^-1 mod n, using the routine in Appendix B.1.
+    uint64_t start_cycles, end_cycles, total_cycles;
+    start_cycles = cpucycles();
     if(!BnModInverse(bnW, bnS, order))
 	goto Exit;
     // 5. Compute u1 = (e' *   w) mod n, and compute u2 = (r' *  w) mod n.
@@ -619,6 +623,9 @@ BnValidateSignatureEcdsa(
     BnMod(ecR->x, order);
     // 8. Compare v and r0. If v = r0, output VALID; otherwise, output INVALID
     if(BnUnsignedCmp(ecR->x, bnR) != 0)
+	end_cycles = cpucycles();
+	total_cycles = end_cycles - start_cycles - cpucycles_overhead();
+	printf("Total CPU cycles for Verify: %llu\n", (unsigned long long)total_cycles);
 	goto Exit;
     retVal = TPM_RC_SUCCESS;
  Exit:
@@ -788,8 +795,7 @@ CryptEccValidateSignature(
     if((BnUnsignedCmp(bnS, order) >= 0)
        || (BnUnsignedCmp(bnR, order) >= 0))
 	ERROR_RETURN(TPM_RC_SIGNATURE);
-    uint64_t start_cycles, end_cycles, total_cycles;
-    start_cycles = cpucycles();
+
     switch(signature->sigAlg)
 	{
 	  case ALG_ECDSA_VALUE:
@@ -810,9 +816,6 @@ CryptEccValidateSignature(
 	  default:
 	    FAIL(FATAL_ERROR_INTERNAL);
 	}
-    end_cycles = cpucycles();
-    total_cycles = end_cycles - start_cycles - cpucycles_overhead();
-    printf("Total CPU cycles for Verify: %llu\n", (unsigned long long)total_cycles);
  Exit:
     CURVE_FREE(E);
     return retVal;

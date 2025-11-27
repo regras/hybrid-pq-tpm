@@ -581,9 +581,11 @@ BnEccGenerateKeyPair(
 {
     BOOL                 OK = FALSE;
     // Get a private scalar
+
     OK = BnEccGetPrivate(bnD, AccessCurveData(E), rand);
     // Do a point multiply
     OK = OK && BnEccModMult(ecQ, NULL, bnD, E);
+
     if(!OK)
 	BnSetWord(ecQ->z, 0);
     else

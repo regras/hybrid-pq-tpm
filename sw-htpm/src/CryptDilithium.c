@@ -1,5 +1,3 @@
-
-
 #include "Tpm.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -18,9 +16,6 @@
 
 // Estrutura para armazenar os parâmetros
 typedef struct {
-    int ecc_pk_size;
-    int ecc_sk_size;
-    int ecc_sig_size;
     int ecc_nid;
     const char *curve_name;
     int mldsa_level;
@@ -32,87 +27,69 @@ typedef struct {
 // Nomes das curvas
 const char *curve_names[] = {"secp256k1", "secp384r1", "secp521r1", "ed25519", "ed448"};
 
+
 void generate_params(uint8_t tpm_dilithium_mode, Params *params) {
-    // Inicializa com valores padrão para modo DILITHIUM
-    params->ecc_pk_size = 0;
-    params->ecc_sk_size = 0;
-    params->ecc_sig_size = 0;
     params->ecc_nid = 0;
     params->curve_name = NULL;
 
     switch (tpm_dilithium_mode) {
         case TPM_DILITHIUM_MODE_1: // mldsa44
         	params->mldsa_level = 1;
-            params->mldsa_pk_size = OQS_SIG_ml_dsa_44_ipd_length_public_key;
-            params->mldsa_sk_size = OQS_SIG_ml_dsa_44_ipd_length_secret_key;
-            params->mldsa_sig_size = OQS_SIG_ml_dsa_44_ipd_length_signature;
+            params->mldsa_pk_size = OQS_SIG_ml_dsa_44_length_public_key;
+            params->mldsa_sk_size = OQS_SIG_ml_dsa_44_length_secret_key;
+            params->mldsa_sig_size = OQS_SIG_ml_dsa_44_length_signature;
             break;
         case TPM_DILITHIUM_MODE_2: // mldsa65
 			params->mldsa_level = 2;
-			params->mldsa_pk_size = OQS_SIG_ml_dsa_65_ipd_length_public_key;
-			params->mldsa_sk_size = OQS_SIG_ml_dsa_65_ipd_length_secret_key;
-			params->mldsa_sig_size = OQS_SIG_ml_dsa_65_ipd_length_signature;
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_65_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_65_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_65_length_signature;
 			break;
         case TPM_DILITHIUM_MODE_3: // mldsa87
 			params->mldsa_level = 3;
-			params->mldsa_pk_size = OQS_SIG_ml_dsa_87_ipd_length_public_key;
-			params->mldsa_sk_size = OQS_SIG_ml_dsa_87_ipd_length_secret_key;
-			params->mldsa_sig_size = OQS_SIG_ml_dsa_87_ipd_length_signature;
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_87_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_87_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_87_length_signature;
 			break;
         case TPM_DILITHIUM_MODE_4: // mldsa44 + p256
-            params->ecc_pk_size = 33;
-            params->ecc_sk_size = 32;
-            params->ecc_sig_size = 72;
             params->ecc_nid = NID_secp256k1;
             params->curve_name = curve_names[0];
             params->mldsa_level = 1;
-            params->mldsa_pk_size = OQS_SIG_ml_dsa_44_ipd_length_public_key;
-            params->mldsa_sk_size = OQS_SIG_ml_dsa_44_ipd_length_secret_key;
-            params->mldsa_sig_size = OQS_SIG_ml_dsa_44_ipd_length_signature;
+            params->mldsa_pk_size = OQS_SIG_ml_dsa_44_length_public_key;
+            params->mldsa_sk_size = OQS_SIG_ml_dsa_44_length_secret_key;
+            params->mldsa_sig_size = OQS_SIG_ml_dsa_44_length_signature;
             break;
         case TPM_DILITHIUM_MODE_5: // mldsa44 + ed25519
-			params->ecc_pk_size = 32;
-			params->ecc_sk_size = 32;
-			params->ecc_sig_size = 64;
 			params->ecc_nid = NID_ED25519;
 			params->mldsa_level = 1;
 			params->curve_name = curve_names[3]; // ed25519
-			params->mldsa_pk_size = OQS_SIG_ml_dsa_44_ipd_length_public_key;
-			params->mldsa_sk_size = OQS_SIG_ml_dsa_44_ipd_length_secret_key;
-			params->mldsa_sig_size = OQS_SIG_ml_dsa_44_ipd_length_signature;
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_44_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_44_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_44_length_signature;
 			break;
 		case TPM_DILITHIUM_MODE_6: // mldsa65 + p384
-			params->ecc_pk_size = 49;
-			params->ecc_sk_size = 48;
-			params->ecc_sig_size = 104;
 			params->ecc_nid = NID_secp384r1;
 			params->curve_name = curve_names[1]; // secp384r1
 			params->mldsa_level = 2;
-			params->mldsa_pk_size = OQS_SIG_ml_dsa_65_ipd_length_public_key;
-			params->mldsa_sk_size = OQS_SIG_ml_dsa_65_ipd_length_secret_key;
-			params->mldsa_sig_size = OQS_SIG_ml_dsa_65_ipd_length_signature;
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_65_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_65_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_65_length_signature;
 			break;
 		case TPM_DILITHIUM_MODE_7: // mldsa87 + p521
-			params->ecc_pk_size = 67;
-			params->ecc_sk_size = 66;
-			params->ecc_sig_size = 139;
 			params->ecc_nid = NID_secp521r1;
 			params->curve_name = curve_names[2]; // secp521r1
 			params->mldsa_level = 3;
-			params->mldsa_pk_size = OQS_SIG_ml_dsa_87_ipd_length_public_key;
-			params->mldsa_sk_size = OQS_SIG_ml_dsa_87_ipd_length_secret_key;
-			params->mldsa_sig_size = OQS_SIG_ml_dsa_87_ipd_length_signature;
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_87_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_87_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_87_length_signature;
 			break;
 		case TPM_DILITHIUM_MODE_8: // mldsa87 + ed448
-			params->ecc_pk_size = 57;
-			params->ecc_sk_size = 57;
-			params->ecc_sig_size = 114;
 			params->ecc_nid = NID_ED448;
 			params->curve_name = curve_names[4]; // ed448
 			params->mldsa_level = 3;
-			params->mldsa_pk_size = OQS_SIG_ml_dsa_87_ipd_length_public_key;
-			params->mldsa_sk_size = OQS_SIG_ml_dsa_87_ipd_length_secret_key;
-			params->mldsa_sig_size = OQS_SIG_ml_dsa_87_ipd_length_signature;
+			params->mldsa_pk_size = OQS_SIG_ml_dsa_87_length_public_key;
+			params->mldsa_sk_size = OQS_SIG_ml_dsa_87_length_secret_key;
+			params->mldsa_sig_size = OQS_SIG_ml_dsa_87_length_signature;
 			break;
         default:
             fprintf(stderr, "Modo de TPM_DILITHIUM inválido.\n");
@@ -123,7 +100,8 @@ void generate_params(uint8_t tpm_dilithium_mode, Params *params) {
 BOOL CryptDilithiumInit(void) { return TRUE; }
 BOOL CryptDilithiumStartup(void) { return TRUE; }
 
-LIB_EXPORT TPM_RC CryptDilithiumSign(
+LIB_EXPORT TPM_RC
+CryptDilithiumSign(
     TPMT_SIGNATURE *sigOut,
     OBJECT *key,                // IN: Key to use
     TPM2B_DIGEST *hIn           // IN: The digest to sign
@@ -134,15 +112,14 @@ LIB_EXPORT TPM_RC CryptDilithiumSign(
     Params params;
     generate_params(key->publicArea.parameters.dilithiumDetail.mode, &params);
 
-    // Signature variables
-    unsigned long long sigLen1;
-    unsigned long sigLen2;
-    unsigned char *sig1 = (unsigned char *)malloc((params.ecc_sig_size + (int)hIn->t.size) * sizeof(unsigned char));
-    unsigned char *sk1 = (unsigned char *)malloc(params.ecc_sk_size * sizeof(unsigned char));
-    EVP_PKEY *ev_privKey = NULL;
+    unsigned long mldsa_sig_len;
+
+    size_t ecc_sig_len = 0;
+    size_t ecc_sk_size = (size_t)(key->sensitive.sensitive.dilithium.t.size - params.mldsa_sk_size);
 
     // Cycle counting for performance
-    uint64_t start_cycles, end_cycles, total_cycles;
+    uint64_t start_cycles=0, end_cycles=0, total_cycles=0;
+    uint64_t cpu_overhead = cpucycles_overhead();
 
     // Parameter checks
     pAssert(sigOut != NULL && key != NULL && hIn != NULL);
@@ -165,96 +142,99 @@ LIB_EXPORT TPM_RC CryptDilithiumSign(
         return TPM_RC_VALUE;
     }
 
-    // Start CPU cycle measurement
-    start_cycles = cpucycles();
-
     if (params.ecc_nid != 0) {
+        EVP_PKEY *ev_privKey = NULL;
+        unsigned char *ecc_sig = NULL;
+        // Deserialize private key based on curve type
+        if (params.ecc_nid != NID_ED25519 && params.ecc_nid != NID_ED448) {
+            ev_privKey = get_deserialize_private_key(
+                key->sensitive.sensitive.dilithium.t.buffer,
+                ecc_sk_size,
+                params.curve_name
+            );
+        } else {
+            ev_privKey = EVP_PKEY_new_raw_private_key(
+                params.ecc_nid, NULL,
+                key->sensitive.sensitive.dilithium.t.buffer,
+                ecc_sk_size
+            );
+        }
 
-		// Copy sensitive data to sk1
-		for (int i = 0; i < params.ecc_sk_size; i++) {
-			sk1[i] = key->sensitive.sensitive.dilithium.t.buffer[i];
-		}
+        if (!ev_privKey) {
+            fprintf(stderr, "Error deserializing the private key %s.\n", params.curve_name);
+            return TPM_RC_FAILURE;
+        }
 
-		// Deserialize private key based on curve type
-		if (params.ecc_nid != NID_ED25519 && params.ecc_nid != NID_ED448) {
-			ev_privKey = get_deserialize_private_key(sk1, params.ecc_sk_size, params.curve_name);
-		} else {
-			ev_privKey = EVP_PKEY_new_raw_private_key(params.ecc_nid, NULL, sk1, params.ecc_sk_size);
-		}
+        // Sign the message
+        // Start CPU cycle measurement
+        start_cycles = cpucycles();
+        if (!sign_message(ev_privKey, hIn->t.buffer, (size_t)hIn->t.size, &ecc_sig, &ecc_sig_len)) {
+            fprintf(stderr, "Error signing message with %s.\n", params.curve_name);
+            EVP_PKEY_free(ev_privKey);
+            return TPM_RC_FAILURE;
+        }
+        end_cycles = cpucycles();
+        total_cycles = end_cycles - start_cycles - cpu_overhead;
 
-		if (!ev_privKey) {
-			fprintf(stderr, "Error deserializing the private key %s.\n", params.curve_name);
-			free(sig1);
-			free(sk1);
-			return -1;
-		}
 
-		// Sign the message
-		if (!sign_message(ev_privKey, hIn->t.buffer, (int)hIn->t.size, &sig1, params.ecc_sig_size)) {
-			fprintf(stderr, "Error signing message with %s.\n", params.curve_name);
-			EVP_PKEY_free(ev_privKey);
-			free(sig1);
-			free(sk1);
-			return -1;
-		}
-		printf("Message signed successfully!\n");
 
-		// Copy signature to output buffer
-		memcpy(sigOut->signature.dilithium.sig.t.buffer, sig1, params.ecc_sig_size);
-		free(sig1);
-		free(sk1);
-		}
+        // Copy signature to output buffer
+        memcpy(sigOut->signature.dilithium.sig.t.buffer, ecc_sig, ecc_sig_len);
 
-    // Generate the second part of the signature with ML-DSA
+        // Free resources
+        EVP_PKEY_free(ev_privKey);
+        free(ecc_sig);
+    }
+
+    OQS_SIG *sig = NULL;
 
     int r2 = 0;
-    switch (params.mldsa_level) {
-          case 1:
-              r2 = OQS_SIG_ml_dsa_44_ipd_sign(
-            	        sigOut->signature.dilithium.sig.t.buffer + params.ecc_sig_size,
-            	        &sigLen2,
-            	        hIn->t.buffer,
-            	        (size_t)hIn->t.size,
-            	        key->sensitive.sensitive.dilithium.t.buffer + params.ecc_sk_size
-            	    );
-              break;
-          case 2:
-              r2 = OQS_SIG_ml_dsa_65_ipd_sign(
-            	        sigOut->signature.dilithium.sig.t.buffer + params.ecc_sig_size,
-            	        &sigLen2,
-            	        hIn->t.buffer,
-            	        (size_t)hIn->t.size,
-            	        key->sensitive.sensitive.dilithium.t.buffer + params.ecc_sk_size
-            	    );
-              break;
-          case 3:
-              r2 = OQS_SIG_ml_dsa_87_ipd_sign(
-            	        sigOut->signature.dilithium.sig.t.buffer + params.ecc_sig_size,
-            	        &sigLen2,
-            	        hIn->t.buffer,
-            	        (size_t)hIn->t.size,
-            	        key->sensitive.sensitive.dilithium.t.buffer + params.ecc_sk_size
-            	    );
-              break;
-          default:
-              fprintf(stderr, "Modo inválido: %d\n", params.mldsa_level);
-              return TPM_RC_FAILURE;
-      }
 
-    // End CPU cycle measurement
+	switch (params.mldsa_level) {
+		case 1:
+			sig = OQS_SIG_new(OQS_SIG_alg_ml_dsa_44);
+			break;
+		case 2:
+			sig = OQS_SIG_new(OQS_SIG_alg_ml_dsa_65);
+			break;
+		case 3:
+			sig = OQS_SIG_new(OQS_SIG_alg_ml_dsa_87);
+			break;
+		default:
+			fprintf(stderr, "Modo inválido: %d\n", params.mldsa_level);
+			return TPM_RC_FAILURE;
+	}
+	if (sig == NULL) {
+			return OQS_SUCCESS;
+	}
+
+	// Start CPU cycle measurement
+	start_cycles = cpucycles();
+
+	r2 = OQS_SIG_sign(sig,
+                sigOut->signature.dilithium.sig.t.buffer + ecc_sig_len,
+                &mldsa_sig_len,
+                hIn->t.buffer,
+                (size_t)hIn->t.size,
+                key->sensitive.sensitive.dilithium.t.buffer + ecc_sk_size
+            );
+
     end_cycles = cpucycles();
-    total_cycles = end_cycles - start_cycles - cpucycles_overhead();
-    printf("Total CPU cycles for Sign: %llu\n", (unsigned long long)total_cycles);
+    total_cycles += end_cycles - start_cycles - cpu_overhead;
+    printf("Total CPU cycles for Sign Mode %d: %llu\n",
+    		key->publicArea.parameters.dilithiumDetail.mode,
+    		(unsigned long long)total_cycles);
 
     if (r2 != 0) {
-        return -3;
+        return TPM_RC_FAILURE;
     }
-    // Set total signature size in the output structure
-    sigOut->signature.dilithium.sig.t.size = params.ecc_sig_size + params.mldsa_sig_size;
 
-Exit:
+    // Set total signature size in the output structure
+    sigOut->signature.dilithium.sig.t.size = ecc_sig_len + mldsa_sig_len;
+
     return retVal;
 }
+
 
 
 LIB_EXPORT TPM_RC
@@ -264,24 +244,20 @@ CryptDilithiumValidateSignature(
     TPM2B_DIGEST    *digest         // IN: The digest being validated
 )
 {
-    TPM_RC retVal = TPM_RC_SUCCESS;
     EVP_PKEY* ev_pubKey = NULL;
     Params params;
     generate_params(key->publicArea.parameters.dilithiumDetail.mode, &params);
 
-    uint64_t start_cycles, end_cycles, total_cycles;
-    unsigned char* msgFromSignature1 = (unsigned char*)malloc(96 * sizeof(unsigned char));
-    unsigned long long msgFromSignatureLen1 = 0;
-    unsigned char* pk1 = (unsigned char*)malloc(params.ecc_pk_size * sizeof(unsigned char));
-    unsigned char* pk2 = (unsigned char*)malloc(params.mldsa_pk_size * sizeof(unsigned char));
-    int sig1Len = 96;
+    // Cycle counting for performance
+    uint64_t start_cycles=0, end_cycles=0, total_cycles=0;
+    uint64_t cpu_overhead = cpucycles_overhead();
 
-    if (sig->signature.dilithium.sig.t.size != params.ecc_sig_size + params.mldsa_sig_size) {
-        free(msgFromSignature1);
-        free(pk1);
-        free(pk2);
-        return TPM_RC_VALUE;
-    }
+
+    size_t ecc_pk_size = (size_t)(key->publicArea.unique.dilithium.t.size - params.mldsa_pk_size);
+    unsigned char* ecc_pk = (unsigned char*)malloc(ecc_pk_size * sizeof(unsigned char));
+    size_t ecc_sig_len = (size_t)(sig->signature.dilithium.sig.t.size - params.mldsa_sig_size);
+
+    unsigned char* mldsa_pk = (unsigned char*)malloc(params.mldsa_pk_size * sizeof(unsigned char));
 
     pAssert(sig != NULL && key != NULL && digest != NULL);
 
@@ -293,92 +269,86 @@ CryptDilithiumValidateSignature(
         return TPM_RC_SCHEME;
     }
 
-    if (sig->signature.dilithium.mode < TPM_DILITHIUM_MODE_1 || sig->signature.dilithium.mode > TPM_DILITHIUM_MODE_4) {
+    if (sig->signature.dilithium.mode < TPM_DILITHIUM_MODE_1 || sig->signature.dilithium.mode > TPM_DILITHIUM_MODE_8) {
         return TPM_RC_VALUE;
     }
-
-	start_cycles = cpucycles();
 
     if (params.ecc_nid != 0) {
 
 		// Copy pk1 from key
-		memcpy(pk1, key->publicArea.unique.dilithium.b.buffer, params.ecc_pk_size);
+		memcpy(ecc_pk, key->publicArea.unique.dilithium.b.buffer, ecc_pk_size);
 
 		if (params.ecc_nid != NID_ED25519 && params.ecc_nid != NID_ED448) {
-			ev_pubKey = get_deserialize_public_key(pk1, params.ecc_pk_size, params.curve_name);
+			ev_pubKey = get_deserialize_public_key(ecc_pk, ecc_pk_size, params.curve_name);
 		} else {
-			ev_pubKey = EVP_PKEY_new_raw_public_key(params.ecc_nid, NULL, pk1, params.ecc_pk_size);
+			ev_pubKey = EVP_PKEY_new_raw_public_key(params.ecc_nid, NULL, ecc_pk, ecc_pk_size);
 		}
 
 		if (!ev_pubKey) {
 			fprintf(stderr, "Erro ao desserializar a chave pública %s.\n", params.curve_name);
-			free(msgFromSignature1);
-			free(pk1);
-			free(pk2);
+			free(ecc_pk);
+			free(mldsa_pk);
 			return TPM_RC_VALUE;
 		}
 
-		if (!verify_signature(ev_pubKey, msgFromSignature1, &msgFromSignatureLen1, sig->signature.dilithium.sig.t.buffer, sig1Len)) {
+		start_cycles = cpucycles();
+
+		if (!verify_signature(ev_pubKey, digest->t.buffer,
+    	        (size_t)digest->t.size,
+				sig->signature.dilithium.sig.t.buffer,
+				ecc_sig_len)) {
 			EVP_PKEY_free(ev_pubKey);
-			free(msgFromSignature1);
-			free(pk1);
-			free(pk2);
+			free(ecc_pk);
+			free(mldsa_pk);
 			return TPM_RC_SIGNATURE;
 		}
+		end_cycles = cpucycles();
+		total_cycles = end_cycles - start_cycles - cpu_overhead;
 
 		EVP_PKEY_free(ev_pubKey);
-		free(msgFromSignature1);
-
-		if (msgFromSignatureLen1 != 32) {
-			free(pk1);
-			free(pk2);
-			return TPM_RC_VALUE;
-		}
     }
 
     // Copy pk2 from key for second verification
-    memcpy(pk2, key->publicArea.unique.dilithium.b.buffer + params.ecc_pk_size, params.mldsa_pk_size);
+    memcpy(mldsa_pk, key->publicArea.unique.dilithium.b.buffer + ecc_pk_size, params.mldsa_pk_size);
 
-    int r2 = 0;
-    switch (params.mldsa_level) {
-          case 1:
-              r2 = OQS_SIG_ml_dsa_44_ipd_verify(
+    OQS_SIG *sig_params = NULL;
+
+	int r2 = 0;
+
+	switch (params.mldsa_level) {
+		case 1:
+			sig_params = OQS_SIG_new(OQS_SIG_alg_ml_dsa_44);
+			break;
+		case 2:
+			sig_params = OQS_SIG_new(OQS_SIG_alg_ml_dsa_65);
+			break;
+		case 3:
+			sig_params = OQS_SIG_new(OQS_SIG_alg_ml_dsa_87);
+			break;
+		default:
+			fprintf(stderr, "Modo inválido: %d\n", params.mldsa_level);
+			return TPM_RC_FAILURE;
+	}
+	if (sig_params == NULL) {
+			return OQS_SUCCESS;
+	}
+
+	start_cycles = cpucycles();
+
+    r2 = OQS_SIG_verify(sig_params,
             	        digest->t.buffer,
             	        (size_t)digest->t.size,
-            	        sig->signature.dilithium.sig.t.buffer,
+						sig->signature.dilithium.sig.t.buffer+ecc_sig_len,
             	        params.mldsa_sig_size,
-            	        pk2
+            	        mldsa_pk
             	    );
-              break;
-          case 2:
-              r2 = OQS_SIG_ml_dsa_65_ipd_verify(
-            	        digest->t.buffer,
-            	        (size_t)digest->t.size,
-            	        sig->signature.dilithium.sig.t.buffer,
-            	        params.mldsa_sig_size,
-            	        pk2
-            	    );
-              break;
-          case 3:
-              r2 = OQS_SIG_ml_dsa_87_ipd_verify(
-            	        digest->t.buffer,
-            	        (size_t)digest->t.size,
-            	        sig->signature.dilithium.sig.t.buffer,
-            	        params.mldsa_sig_size,
-            	        pk2
-            	    );
-              break;
-          default:
-              fprintf(stderr, "Modo inválido: %d\n", params.mldsa_level);
-              return TPM_RC_FAILURE;
-      }
 
     end_cycles = cpucycles();
-    total_cycles = end_cycles - start_cycles - cpucycles_overhead();
-    printf("Total CPU cycles for Verify: %llu\n", (unsigned long long)total_cycles);
+    total_cycles += end_cycles - start_cycles - cpu_overhead;
+    printf("Total CPU cycles for Verify Mode %d: %llu\n", sig->signature.dilithium.mode, (unsigned long long)total_cycles);
 
-    free(pk1);
-    free(pk2);
+    free(ecc_pk);
+    free(mldsa_pk);
 
     if (r2 != 0) {
         return TPM_RC_SIGNATURE;
@@ -390,106 +360,132 @@ CryptDilithiumValidateSignature(
 
 LIB_EXPORT TPM_RC
 CryptDilithiumGenerateKey(
-            OBJECT *dilithiumKey,   // IN/OUT: Estrutura do objeto onde a chave será criada
-            RAND_STATE *rand        // IN: Estado RNG determinístico (se não NULL)
+    OBJECT *dilithiumKey,   // IN/OUT: Estrutura do objeto onde a chave será criada
+    RAND_STATE *rand        // IN: Estado RNG determinístico (se não NULL)
 )
 {
     TPMT_PUBLIC *publicArea = &dilithiumKey->publicArea;
     TPMT_SENSITIVE *sensitive = &dilithiumKey->sensitive;
     TPM_RC retVal = TPM_RC_NO_RESULT;
 
-    EVP_PKEY *ev_key = NULL;
     Params params;
     generate_params(dilithiumKey->publicArea.parameters.dilithiumDetail.mode, &params);
 
-    uint64_t start_cycles, end_cycles, total_cycles;
+    // Cycle counting for performance
+    uint64_t start_cycles=0, end_cycles=0, total_cycles=0;
+    uint64_t cpu_overhead = cpucycles_overhead();
 
-    unsigned char *pk1 = NULL;
-    unsigned char *sk1 = NULL;
-    size_t st_pubKeyLen = 0;
-    size_t st_privKeyLen = 0;
-    size_t st_edSize = 0;
 
-    start_cycles = cpucycles();
-
-    // Gera chave ECC se aplicável
-    if (params.ecc_nid != 0) {
-        ev_key = generate_key(params.ecc_nid);
-        if (!ev_key) {
-            fprintf(stderr, "Erro ao gerar chave para NID %d.\n", params.ecc_nid);
-            return -1;
-        }
-
-        if (params.ecc_nid != NID_ED25519 && params.ecc_nid != NID_ED448) {
-            pk1 = get_serialized_public_key(ev_key, &st_pubKeyLen);
-            sk1 = get_serialized_private_key(ev_key, &st_privKeyLen);
-        } else {
-            // Para EdDSA (ed25519 e ed448), serialize usando o formato raw
-            st_edSize = (params.ecc_nid == NID_ED448) ? 57 : 32;
-            pk1 = (unsigned char*)malloc(st_edSize);
-            sk1 = (unsigned char*)malloc(st_edSize);
-
-            if (!pk1 || EVP_PKEY_get_raw_public_key(ev_key, pk1, &st_edSize) <= 0 ||
-                !sk1 || EVP_PKEY_get_raw_private_key(ev_key, sk1, &st_edSize) <= 0) {
-                fprintf(stderr, "Erro ao obter chaves raw.\n");
-                ERR_print_errors_fp(stderr);
-                EVP_PKEY_free(ev_key);
-                return -2;
-            }
-        }
-
-        memcpy(publicArea->unique.dilithium.t.buffer, pk1, params.ecc_pk_size);
-        memcpy(sensitive->sensitive.dilithium.t.buffer, sk1, params.ecc_sk_size);
-
-        free(pk1);
-        free(sk1);
-    }
+    size_t pk_len = 0, sk_len = 0;
 
     pAssert(dilithiumKey != NULL);
 
-    // Certifica-se que Dilithium é usado para assinatura
-    if (!IS_ATTRIBUTE(publicArea->objectAttributes, TPMA_OBJECT, sign))
-        ERROR_RETURN(TPM_RC_NO_RESULT);
+     // Certifica-se que Dilithium é usado para assinatura
+     if (!IS_ATTRIBUTE(publicArea->objectAttributes, TPMA_OBJECT, sign))
+         ERROR_RETURN(TPM_RC_NO_RESULT);
 
-    int r2 = 0;
-    switch (params.mldsa_level) {
-          case 1:
-              r2 = OQS_SIG_ml_dsa_44_ipd_keypair(
-                      publicArea->unique.dilithium.t.buffer + params.ecc_pk_size,
-                      sensitive->sensitive.dilithium.t.buffer + params.ecc_sk_size);
-              break;
-          case 2:
-              r2 = OQS_SIG_ml_dsa_65_ipd_keypair(
-                      publicArea->unique.dilithium.t.buffer + params.ecc_pk_size,
-                      sensitive->sensitive.dilithium.t.buffer + params.ecc_sk_size);
-              break;
-          case 3:
-              r2 = OQS_SIG_ml_dsa_87_ipd_keypair(
-                      publicArea->unique.dilithium.t.buffer + params.ecc_pk_size,
-                      sensitive->sensitive.dilithium.t.buffer + params.ecc_sk_size);
-              break;
-          default:
-              fprintf(stderr, "Modo inválido: %d\n", params.mldsa_level);
-              return TPM_RC_FAILURE;
-      }
+    // Gera chave ECC se aplicável
+    if (params.ecc_nid != 0) {
+    	EVP_PKEY *ev_key = NULL;
 
-    end_cycles = cpucycles();
-    total_cycles = end_cycles - start_cycles - cpucycles_overhead();
-    printf("Total CPU cycles for GenKey: %llu\n", (unsigned long long)total_cycles);
+	    start_cycles = cpucycles();
+
+        ev_key = generate_key(params.ecc_nid);
+
+        end_cycles = cpucycles();
+        total_cycles = end_cycles - start_cycles - cpu_overhead;
+
+        unsigned char *pk = NULL;
+        unsigned char *sk = NULL;
+        if (!ev_key) {
+            fprintf(stderr, "Erro ao gerar chave para NID %d.\n", params.ecc_nid);
+            return TPM_RC_FAILURE;
+        }
+
+        // Define os tamanhos para serialização
+        if (params.ecc_nid == NID_ED25519 || params.ecc_nid == NID_ED448) {
+            pk_len = sk_len = (params.ecc_nid == NID_ED448) ? 57 : 32;
+            pk = (unsigned char *)malloc(pk_len);
+            sk = (unsigned char *)malloc(sk_len);
 
 
-    if (r2 != 0) {
-        return -3;
+            if (!pk || !sk ||
+                EVP_PKEY_get_raw_public_key(ev_key, pk, &pk_len) <= 0 ||
+                EVP_PKEY_get_raw_private_key(ev_key, sk, &sk_len) <= 0) {
+                fprintf(stderr, "Erro ao obter chaves raw.\n");
+                ERR_print_errors_fp(stderr);
+                EVP_PKEY_free(ev_key);
+                free(pk);
+                free(sk);
+                return TPM_RC_FAILURE;
+            }
+        } else {
+            pk = get_serialized_public_key(ev_key, &pk_len);
+            sk = get_serialized_private_key(ev_key, &sk_len);
+            if (!pk || !sk) {
+                fprintf(stderr, "Erro ao serializar chaves.\n");
+                EVP_PKEY_free(ev_key);
+                free(pk);
+                free(sk);
+                return TPM_RC_FAILURE;
+            }
+        }
+
+        // Libera a estrutura ev_key, pois não será mais usada
+        EVP_PKEY_free(ev_key);
+
+        memcpy(publicArea->unique.dilithium.t.buffer, pk, pk_len);
+        free(pk);
+        memcpy(sensitive->sensitive.dilithium.t.buffer, sk, sk_len);
+        free(sk);
     }
 
-    publicArea->unique.dilithium.t.size = params.ecc_pk_size + params.mldsa_pk_size;
-    sensitive->sensitive.dilithium.t.size = params.ecc_sk_size + params.mldsa_sk_size;
+    int r2 = 0;
+
+    OQS_SIG *sig = NULL;
+
+    switch (params.mldsa_level) {
+        case 1:
+        	sig = OQS_SIG_new(OQS_SIG_alg_ml_dsa_44);
+            break;
+        case 2:
+        	sig = OQS_SIG_new(OQS_SIG_alg_ml_dsa_65);
+            break;
+        case 3:
+        	sig = OQS_SIG_new(OQS_SIG_alg_ml_dsa_87);
+            break;
+        default:
+            fprintf(stderr, "Modo inválido: %d\n", params.mldsa_level);
+            return TPM_RC_FAILURE;
+    }
+    if (sig == NULL) {
+    		return OQS_SUCCESS;
+    }
+
+    start_cycles = cpucycles();
+
+    r2 = OQS_SIG_keypair(sig,
+                    publicArea->unique.dilithium.t.buffer + pk_len,
+                    sensitive->sensitive.dilithium.t.buffer + sk_len);
+
+    end_cycles = cpucycles();
+    total_cycles += end_cycles - start_cycles - cpu_overhead;
+    printf("Total CPU cycles for GenKey Mode %d: %llu\n",
+    		dilithiumKey->publicArea.parameters.dilithiumDetail.mode,
+			(unsigned long long)total_cycles);
+
+    if (r2 != 0) {
+        return TPM_RC_FAILURE;
+    }
+
+    publicArea->unique.dilithium.t.size = pk_len + params.mldsa_pk_size;
+    sensitive->sensitive.dilithium.t.size = sk_len + params.mldsa_sk_size;
     retVal = TPM_RC_SUCCESS;
 
 Exit:
-    EVP_PKEY_free(ev_key);
     return retVal;
 }
+
 
 
 void generate_params(uint8_t tpm_dilithium_mode, Params *params);
