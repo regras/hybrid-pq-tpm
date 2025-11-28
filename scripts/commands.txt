@@ -1,0 +1,10 @@
+powerup: powerup
+startup: startup
+createprimary: createprimary -rsa -hi p -pwdk SENHA_CHAVE_EK -tk pritk.bin -ch prich.bin
+create: create -hp 80000000 -si -ecc {CURVE} -kt f -kt p -opr dil_priv.bin -opu dil_pub.bin -pwdp SENHA_CHAVE_EK -pwdk SENHA_CHAVE_MLDSA
+load: load -hp 80000000 -ipr dil_priv.bin -ipu dil_pub.bin -pwdp SENHA_CHAVE_EK
+sign: sign -hk 80000001 -ecc -if component_to_sign.txt -os sig.bin -pwdk SENHA_CHAVE_MLDSA
+quote: quote -hp 0x04 -hk 0x80000001 -salg ecc -pwdk SENHA_CHAVE_MLDSA -halg sha256 -palg sha256 -qd component_to_sign.txt -os quote_sig.bin -oa attestation.bin
+verify: verifysignature -hk 80000001 -ecc -if component_to_sign.txt -is sig.bin
+pcrread: pcrread -ha 0 -ahalg sha256
+pcrextend: pcrextend -ha 0 -halg sha256 -ic teste
